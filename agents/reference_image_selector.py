@@ -75,7 +75,7 @@ class RefImageIndicesAndTextPrompt(BaseModel):
     )
     text_prompt: str = Field(
         ...,
-        description="Text description to guide the image generation. You need to describe the image to be generated, specifying which elements in the generated image should reference which image (and which elements within it). For example, 'Create an image following the given description: \nThe man is standing in the landscape. The man should reference the Image 0. The landscape should reference the Image 1.'"
+        description="Text description to guide the image generation. You need to describe the image to be generated, specifying which elements in the generated image should reference which image (and which elements within it). For example, 'Create an image following the given description: \nThe man is standing in the landscape. The man should reference the Image 0. The landscape should reference the Image 1.' Here, the index of the reference image should refer to its position in the ref_image_indices list, not the sequence number in the provided image list."
     )
 
 

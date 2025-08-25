@@ -58,15 +58,15 @@ class VideoGenerationPipeline:
 
         # 1. extract all characters in the script (global information)
         logging.info(f"Extracting characters from script")
-        # characters = self.storyboard_generator.extract_characters(script)
+        characters = self.storyboard_generator.extract_characters(script)
 
         character_text_dir = os.path.join(self.working_dir, "text", "characters")
         os.makedirs(character_text_dir, exist_ok=True)
 
-        # # save the characters
-        # for character in characters:
-        #     with open(f"{character_text_dir}/character_{character.idx}.json", "w") as f:
-        #         json.dump(character.model_dump(), f, indent=4, ensure_ascii=False)
+        # save the characters
+        for character in characters:
+            with open(f"{character_text_dir}/character_{character.idx}.json", "w") as f:
+                json.dump(character.model_dump(), f, indent=4, ensure_ascii=False)
 
         # load the characters
         characters = []
@@ -82,9 +82,9 @@ class VideoGenerationPipeline:
         os.makedirs(character_image_dir, exist_ok=True)
         for character in characters:
             save_dir = os.path.join(character_image_dir, character.identifier)
-        #     logging.info(f"Generating three-view portrait for character: {character.identifier} (save to {save_dir})")
-        #     os.makedirs(save_dir, exist_ok=True)
-        #     self.character_generator(character, style, save_dir)
+            logging.info(f"Generating three-view portrait for character: {character.identifier} (save to {save_dir})")
+            os.makedirs(save_dir, exist_ok=True)
+            self.character_generator(character, style, save_dir)
 
             for view in ["front", "side", "back"]:
                 view_image_path = os.path.join(save_dir, f"{view}.png")
@@ -113,7 +113,7 @@ class VideoGenerationPipeline:
             frame_paths = []
             # 3.2 generate the first frame (and last frame) of the shot
             for frame_type in ["first_frame", "last_frame"]:
-                if not hasattr(shot, frame_type):
+                if not getattr(shot, frame_type):
                     logging.info(f"Shot {shot.idx} does not have {frame_type} attribute")
                     continue
 
