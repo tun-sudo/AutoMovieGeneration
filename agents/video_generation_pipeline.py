@@ -94,6 +94,7 @@ class VideoGenerationPipeline:
         # 3. loop: design next shot -> generate first (and last) frame -> generate video
         shots = []
         shot_text_dir = os.path.join(self.working_dir, "text", "shots")
+        os.makedirs(shot_text_dir, exist_ok=True)
         while True:
             # 3.1 design next shot
             shot = self.storyboard_generator.get_next_shot_description(script, characters, shots)
