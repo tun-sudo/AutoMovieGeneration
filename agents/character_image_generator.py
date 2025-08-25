@@ -56,7 +56,7 @@ class CharacterImageGenerator(ImageGenerator):
     ):
         super().__init__(base_url=base_url, api_key=api_key)
 
-
+    @retry
     def __call__(
         self,
         character: Character,
