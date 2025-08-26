@@ -48,6 +48,7 @@ You need to select the most relevant reference images based on the user's descri
 2. Ensure maximum visual consistency across character appearance, environmental context, and stylistic elements. Enable coherent visual storytelling across sequential images
 3. Prioritize images with similar compositions (shot by the same camera).
 4. Choose reference images that are as concise as possible and avoid including duplicate information.
+5. Ensure that the language of all output values(not include keys) matches that used in the shot description.
 """
 
 

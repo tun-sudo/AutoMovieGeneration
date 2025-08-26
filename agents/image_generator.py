@@ -26,6 +26,7 @@ import json
 def download_image(url, save_path):
     try:
         # 发送 HTTP GET 请求
+        logging.info(f"Downloading image from {url} to {save_path}")
         response = requests.get(url, stream=True)
         response.raise_for_status()  # 检查请求是否成功
         
@@ -37,6 +38,7 @@ def download_image(url, save_path):
         logging.info(f"Image downloaded successfully to {save_path}")
     except requests.exceptions.RequestException as e:
         logging.error(f"Error downloading image: {e}")
+        raise e
 
 
 
@@ -139,9 +141,11 @@ class ImageGenerator:
             image_url = response.data[0].url
             download_image(image_url, save_path)
         elif hasattr(response.data[0], "b64_json"):
+            logging.info("Received base64 image data from the response.")
             image_data = base64.b64decode(response.data[0].b64_json)
             with open(save_path, "wb") as f:
                 f.write(image_data)
+            logging.info(f"Image saved successfully to {save_path}")
         else:
             raise ValueError("No image URL or base64 data found in the response.")
 

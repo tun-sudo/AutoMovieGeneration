@@ -77,28 +77,28 @@ class CharacterImageGenerator(ImageGenerator):
         )
 
         # 2. then create the side view and back view based on the front view.
-        prompt_side_view = prompt_template_generate_character_side_view.format(
-            features=character.features,
-            style=style
-        )
-        save_path_side_view = os.path.join(save_dir, "side.png")
-        self.edit_image(
-            prompt=prompt_side_view,
-            image_paths=[save_path_front_view],
-            size="1024x1536",
-            background="transparent",
-            save_path=save_path_side_view
-        )
+        # prompt_side_view = prompt_template_generate_character_side_view.format(
+        #     features=character.features,
+        #     style=style
+        # )
+        # save_path_side_view = os.path.join(save_dir, "side.png")
+        # self.edit_image(
+        #     prompt=prompt_side_view,
+        #     image_paths=[save_path_front_view],
+        #     size="1024x1536",
+        #     background="transparent",
+        #     save_path=save_path_side_view
+        # )
 
-        prompt_back_view = prompt_template_generate_character_back_view.format(
-            features=character.features,
-            style=style
-        )
-        save_path_back_view = os.path.join(save_dir, "back.png")
-        self.edit_image(
-            prompt=prompt_back_view,
-            image_paths=[save_path_front_view],
-            size="1024x1536",
-            background="transparent",
-            save_path=save_path_back_view
-        )
+        # prompt_back_view = prompt_template_generate_character_back_view.format(
+        #     features=character.features,
+        #     style=style
+        # )
+        # save_path_back_view = os.path.join(save_dir, "back.png")
+        # self.edit_image(
+        #     prompt=prompt_back_view,
+        #     image_paths=[save_path_front_view],
+        #     size="1024x1536",
+        #     background="transparent",
+        #     save_path=save_path_back_view
+        # )

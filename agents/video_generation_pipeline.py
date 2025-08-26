@@ -58,12 +58,11 @@ class VideoGenerationPipeline:
 
         # 1. extract all characters in the script (global information)
         logging.info(f"Extracting characters from script")
-        characters = self.storyboard_generator.extract_characters(script)
-
         character_text_dir = os.path.join(self.working_dir, "text", "characters")
+    
+        # extract and save the characters
+        characters = self.storyboard_generator.extract_characters(script)
         os.makedirs(character_text_dir, exist_ok=True)
-
-        # save the characters
         for character in characters:
             with open(f"{character_text_dir}/character_{character.idx}.json", "w") as f:
                 json.dump(character.model_dump(), f, indent=4, ensure_ascii=False)
@@ -81,13 +80,15 @@ class VideoGenerationPipeline:
         character_image_dir = os.path.join(self.working_dir, "images", "characters")
         os.makedirs(character_image_dir, exist_ok=True)
         for character in characters:
+            # generate and save
             save_dir = os.path.join(character_image_dir, character.identifier)
-            logging.info(f"Generating three-view portrait for character: {character.identifier} (save to {save_dir})")
+            logging.info(f"Generating portrait for character: {character.identifier} (save to {save_dir})")
             os.makedirs(save_dir, exist_ok=True)
             self.character_generator(character, style, save_dir)
 
-            for view in ["front", "side", "back"]:
-                view_image_path = os.path.join(save_dir, f"{view}.png")
+            for image_name in os.listdir(save_dir):
+                view_image_path = os.path.join(save_dir, image_name)
+                view = image_name.split(".")[0]  # front, side, back
                 view_text = f"A {view}-view portrait of {character.identifier}"
                 available_image_path_and_text_pairs.append((view_image_path, view_text))
 
@@ -95,6 +96,8 @@ class VideoGenerationPipeline:
         shots = []
         shot_text_dir = os.path.join(self.working_dir, "text", "shots")
         os.makedirs(shot_text_dir, exist_ok=True)
+        shot_image_dir = os.path.join(self.working_dir, "images", "frames")
+        os.makedirs(shot_image_dir, exist_ok=True)
         while True:
             # 3.1 design next shot
             shot = self.storyboard_generator.get_next_shot_description(script, characters, shots)
@@ -128,7 +131,7 @@ class VideoGenerationPipeline:
                 guide_prompt = ref_image_indices_and_text_prompt.text_prompt
 
                 # loop: generate image -> check consistency
-                save_path = os.path.join(self.working_dir, "images", "frames", f"shot_{shot.idx}-{frame_type}.png")
+                save_path = os.path.join(shot_image_dir, f"shot_{shot.idx}-{frame_type}.png")
                 while True:
                     # 3.2.2 generate the frame image
                     logging.info(f"Generating {frame_type} for shot {shot.idx}: \n{guide_prompt}")

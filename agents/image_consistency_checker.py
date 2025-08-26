@@ -43,7 +43,7 @@ You will receive a set of reference images along with their brief text descripti
 1. When checking character consistency, it is necessary to verify all characters in the generated image to determine whether they are the same person as the corresponding reference portraits. Only facial features and body type should be evaluated, while pose, movement, emotion, and clothing are excluded from the assessment.
 2. When checking spatial consistency, it is necessary to determine whether the background environment is the same, and whether the relative positions, sizes, and proportions of key objects are correct. Additionally, if the generated image and the reference image are not from the same perspective, issues such as missing objects, distorted spatial relationships, and misaligned object positions often arise during the generation process. These issues should also be examined.
 3. When checking style consistency, it is necessary to verify whether the generated image and the reference image belong to the same medium or style (such as oil painting, watercolor, anime, pixel art, etc.), whether the color tones match, and whether the overall lighting atmosphere (e.g., sunny afternoon, gloomy dusk, warm indoor lighting) is consistent.
-4. If any inconsistencies are detected, they must be explained in the "reason" field, and the "guide prompt" should be revised accordingly based on the identified discrepancies.
+4. If any inconsistencies are detected, they must be explained in the "reason" field, and the "guide prompt" should be revised accordingly based on the identified discrepancies. Modify the guide prompt based on the original version by adding corresponding constraints to ensure the generated images maintain consistency.
 """
 
 human_prompt_template = \
