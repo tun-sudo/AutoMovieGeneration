@@ -47,7 +47,7 @@ You need to select the most relevant reference images based on the user's descri
 1. The reference images may depict the same character from different angles, in different outfits, or in different scenes. Identify the image closest to the version described by the user.
 2. Ensure maximum visual consistency across character appearance, environmental context, and stylistic elements. Enable coherent visual storytelling across sequential images
 3. Prioritize images with similar compositions (shot by the same camera).
-4. Choose reference images that are as concise as possible and avoid including duplicate information.
+4. Choose reference images that are as concise as possible and avoid including duplicate information. Not more than 5 images should be selected.
 5. Ensure that the language of all output values(not include keys) matches that used in the shot description.
 """
 
