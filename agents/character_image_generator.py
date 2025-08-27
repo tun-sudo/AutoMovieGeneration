@@ -48,13 +48,46 @@ style: {style}
 
 
 
-class CharacterImageGenerator(ImageGenerator):
+def download_image(url, save_path):
+    try:
+        # 发送 HTTP GET 请求
+        logging.info(f"Downloading image from {url} to {save_path}")
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # 检查请求是否成功
+        
+        # 以二进制写入模式打开文件
+        with open(save_path, 'wb') as file:
+            for chunk in response.iter_content(1024):
+                file.write(chunk)
+
+        logging.info(f"Image downloaded successfully to {save_path}")
+    except Exception as e:
+        logging.error(f"Error downloading image: {e}")
+        raise e
+
+
+
+
+def encode_base64(file_path):
+    with open(file_path, 'rb') as image_file:
+        image_data = image_file.read()
+        base64_encoded_data = base64.b64encode(image_data)
+        base64_string = base64_encoded_data.decode('utf-8')
+        return f"data:image/jpeg;base64,{base64_string}"
+
+
+
+
+class CharacterImageGenerator:
     def __init__(
         self,
         base_url: str = "https://yunwu.ai/v1",
         api_key: str = "sk-bapMAyiji5uA2O91yTv6iBIXmp3e0JsMWByxgzHkzOd9jRIF",
     ):
-        super().__init__(base_url=base_url, api_key=api_key)
+        self.gpt4o_client = OpenAI(
+            api_key=api_key,
+            base_url=base_url,
+        )
 
     @retry
     def __call__(
@@ -73,7 +106,7 @@ class CharacterImageGenerator(ImageGenerator):
             prompt=prompt_front_view,
             size="1024x1536",
             background="transparent",
-            save_dir=save_path_front_view,
+            save_path=save_path_front_view,
         )
 
         # 2. then create the side view and back view based on the front view.
@@ -102,3 +135,68 @@ class CharacterImageGenerator(ImageGenerator):
         #     background="transparent",
         #     save_path=save_path_back_view
         # )
+
+
+
+    def generate_image(
+        self,
+        model: str = "gpt-4o-image-vip",
+        prompt: str = "",
+        size: str = "1024x1024",
+        background: str = "auto",
+        save_path: str = None,
+    ): 
+        response = self.gpt4o_client.images.generate(
+            model=model,
+            background=background,
+            prompt=prompt,
+            n=1,
+            size=size,
+            output_format="url",
+        )
+
+        # * Some apis may not support the output_format parameter, so we are trying the following two solutions.
+        data = response.data[0]
+        if hasattr(data, "url"):
+            image_url = data.url
+            download_image(image_url, save_path)
+        elif hasattr(data, "b64_json"):
+            image_data = base64.b64decode(data.b64_json)
+            with open(save_path, "wb") as f:
+                f.write(image_data)
+        else:
+            raise ValueError("No image URL or base64 data found in the response.")
+
+
+    def edit_image(
+        self,
+        model: str = "gpt-4o-image-vip",  # gpt-4o-image-vip gpt-image-1-all
+        prompt: str = "",
+        image_paths: List[str] = [],
+        size: str = "1024x1024",
+        background: str = "auto",
+        save_path: str = None,
+    ):
+        response = self.gpt4o_client.images.edit(
+            model=model,
+            prompt=prompt,
+            image=[
+                open(image_path, "rb") for image_path in image_paths
+            ],
+            n=1,
+            background=background,
+            size=size,
+            output_format="url",
+        )
+
+        # * Some apis may not support the output_format parameter, so we are trying the following two solutions.
+        data = response.data[0]
+        if hasattr(data, "url"):
+            image_url = data.url
+            download_image(image_url, save_path)
+        elif hasattr(data, "b64_json"):
+            image_data = base64.b64decode(data.b64_json)
+            with open(save_path, "wb") as f:
+                f.write(image_data)
+        else:
+            raise ValueError("No image URL or base64 data found in the response.")
