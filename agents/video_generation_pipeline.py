@@ -62,11 +62,11 @@ class VideoGenerationPipeline:
         character_text_dir = os.path.join(self.working_dir, "text", "characters")
     
         # extract and save the characters
-        # characters = self.storyboard_generator.extract_characters(script)
-        # os.makedirs(character_text_dir, exist_ok=True)
-        # for character in characters:
-        #     with open(f"{character_text_dir}/character_{character.idx}.json", "w") as f:
-        #         json.dump(character.model_dump(), f, indent=4, ensure_ascii=False)
+        characters = self.storyboard_generator.extract_characters(script)
+        os.makedirs(character_text_dir, exist_ok=True)
+        for character in characters:
+            with open(f"{character_text_dir}/character_{character.idx}.json", "w") as f:
+                json.dump(character.model_dump(), f, indent=4, ensure_ascii=False)
 
         # load the characters
         characters = []
@@ -85,7 +85,7 @@ class VideoGenerationPipeline:
             save_dir = os.path.join(character_image_dir, character.identifier)
             logging.info(f"Generating portrait for character: {character.identifier} (save to {save_dir})")
             os.makedirs(save_dir, exist_ok=True)
-            # self.character_generator(character, style, save_dir)
+            self.character_generator(character, style, save_dir)
 
             for image_name in os.listdir(save_dir):
                 view_image_path = os.path.join(save_dir, image_name)
