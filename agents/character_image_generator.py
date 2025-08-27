@@ -73,7 +73,7 @@ class CharacterImageGenerator(ImageGenerator):
             prompt=prompt_front_view,
             size="1024x1536",
             background="transparent",
-            save_path=save_path_front_view,
+            save_dir=save_path_front_view,
         )
 
         # 2. then create the side view and back view based on the front view.

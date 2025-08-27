@@ -83,7 +83,7 @@ class ImageGenerator:
             prompt=prompt,
             image_paths=image_paths,
             size="1536x1024",
-            save_path=save_path,
+            save_dir=save_path,
         )
 
 
@@ -93,27 +93,31 @@ class ImageGenerator:
         prompt: str = "",
         size: str = "1024x1024",
         background: str = "auto",
-        save_path: str = None,
+        save_dir: str = None,
+        n=1,
     ): 
         response = self.gpt4o_client.images.generate(
             model=model,
             background=background,
             prompt=prompt,
-            n=1,
+            n=n,
             size=size,
             output_format="url",
         )
 
+
         # * Some apis may not support the output_format parameter, so we are trying the following two solutions.
-        if hasattr(response.data[0], "url"):
-            image_url = response.data[0].url
-            download_image(image_url, save_path)
-        elif hasattr(response.data[0], "b64_json"):
-            image_data = base64.b64decode(response.data[0].b64_json)
-            with open(save_path, "wb") as f:
-                f.write(image_data)
-        else:
-            raise ValueError("No image URL or base64 data found in the response.")
+        for idx, data in enumerate(response.data):
+            save_path = os.path.join(save_dir, f"{idx}.png")
+            if hasattr(data, "url"):
+                image_url = data.url
+                download_image(image_url, save_path)
+            elif hasattr(data, "b64_json"):
+                image_data = base64.b64decode(data.b64_json)
+                with open(save_dir, "wb") as f:
+                    f.write(image_data)
+            else:
+                raise ValueError("No image URL or base64 data found in the response.")
 
 
     def edit_image(
@@ -123,7 +127,8 @@ class ImageGenerator:
         image_paths: List[str] = [],
         size: str = "1024x1024",
         background: str = "auto",
-        save_path: str = None,
+        save_dir: str = None,
+        n=1,
     ):
         response = self.gpt4o_client.images.edit(
             model=model,
@@ -131,21 +136,21 @@ class ImageGenerator:
             image=[
                 open(image_path, "rb") for image_path in image_paths
             ],
-            n=1,
+            n=n,
             background=background,
             size=size,
             output_format="url",
         )
 
-        if hasattr(response.data[0], "url"):
-            image_url = response.data[0].url
-            download_image(image_url, save_path)
-        elif hasattr(response.data[0], "b64_json"):
-            logging.info("Received base64 image data from the response.")
-            image_data = base64.b64decode(response.data[0].b64_json)
-            with open(save_path, "wb") as f:
-                f.write(image_data)
-            logging.info(f"Image saved successfully to {save_path}")
-        else:
-            raise ValueError("No image URL or base64 data found in the response.")
-
+        # * Some apis may not support the output_format parameter, so we are trying the following two solutions.
+        for idx, data in enumerate(response.data):
+            save_dir = os.path.join(save_dir, f"{idx}.png")
+            if hasattr(data, "url"):
+                image_url = data.url
+                download_image(image_url, save_dir)
+            elif hasattr(data, "b64_json"):
+                image_data = base64.b64decode(data.b64_json)
+                with open(save_dir, "wb") as f:
+                    f.write(image_data)
+            else:
+                raise ValueError("No image URL or base64 data found in the response.")
