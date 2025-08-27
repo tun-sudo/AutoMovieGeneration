@@ -108,6 +108,7 @@ class VideoGenerationPipeline:
 
             shot_text_path = f"{shot_text_dir}/shot_{len(shots)}.json"
             if not os.path.exists(shot_text_path):
+                logging.info(f"Designing shot {len(shots)}")
                 shot = self.storyboard_generator.get_next_shot_description(script, characters, shots)
 
                 # save the shot

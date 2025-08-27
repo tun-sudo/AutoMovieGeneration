@@ -170,6 +170,7 @@ class FrameImageGenerator:
             size="1536x1024",
             save_dir=save_dir,
             n=num_candidates,
+            background="opaque",
         )
 
         candidate_image_paths = []
