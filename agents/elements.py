@@ -8,10 +8,10 @@ class Character(BaseModel):
         description="The index of the character in the script, starting from 0."
     )
     identifier: str = Field(
-        description="The core unique name of the character, typically the most formal full name."
+        description="The core unique name of the character, typically the most formal full name, may also be a famous person/animation character"
     )
     features: str = Field(
-        description="The appearance details of the character, including face, hair, clothes, and other features. For example, 'big eyes, long hair, red dress, medium build'."
+        description="The appearance details of the character, including full name, gender, age, ethnicity, face, hair, clothes, and other features. For example, 'big eyes, long hair, red dress, medium build."
     )
 
     # face: str = Field(
@@ -56,7 +56,7 @@ class Shot(BaseModel):
     )
     visual_content: str = Field(
         ...,
-        description="Describe the dynamic changes within the shot (camera movement and the movement of elements within the frame). For example, 'Static camera. Tears well up in the woman's eyes and eventually fall out of the frame.'"
+        description="Describe the dynamic changes within the shot (camera movement and the movement of elements within the frame). Here are some examples: 'The animation ignites with a Rosso Corsa Ferrari supercar model initially as a dynamic blur of motion against a sleek, dark gradient or minimalist studio background. Within 1 second, it snaps into sharp focus, revealing its aggressive front fascia and iconic Prancing Horse emblem. (Seconds 1-3): A quick, cinematic camera sweep glides from the emblem, across a signature sculpted hood line or a low-profile aerodynamic side mirror, then tightly frames a detailed multi-spoke alloy wheel with visible brake calipers. (Seconds 3-4): A brief, impactful shot showcasing the powerful rear haunches and integrated spoiler, perhaps with a glint of light off the taillights.' ; 'Static camera, extreme close-up on the woman's face. Her deep sapphire-blue eyes, flecked with gold, dominate the frame, framed by subtle crow's feet and faint freckles on her pale, porcelain skin. The atmosphere evokes quiet heartbreak, with high detail in skin texture (fine pores and soft wrinkles), saturated colors in tear reflections (vibrant blues and golds), natural light simulation via gentle diffusion from an overcast evening sky, and dynamic micro-motion in the tears' quiver and fall, plus a faint emotional tremor in her gaze. .' ; ' Lego-style racecar bursting through a brick pit stop wall, pieces flying, plants and grass around the base, brown ground and pavement background, dust kicking up, dynamic motion. High detail, saturated Lego colors, HDR contrast, sharp shadows, natural light simulation' ; etc. "
     )
     last_frame: Optional[str] = Field(
         default=None,
