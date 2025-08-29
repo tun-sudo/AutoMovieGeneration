@@ -59,7 +59,7 @@ class ImageGenerator:
     def __init__(
         self,
         base_url: str = "https://yunwu.ai/v1",
-        api_key: str = "sk-bapMAyiji5uA2O91yTv6iBIXmp3e0JsMWByxgzHkzOd9jRIF",
+        api_key: str = "sk-7Z55m4gaQXFmvL2jbGqW6CWb0kMiDQe1qkutjeTsxbVTodwY",
     ):
         self.gpt4o_client = OpenAI(base_url=base_url, api_key=api_key)
 
