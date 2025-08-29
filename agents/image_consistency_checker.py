@@ -85,7 +85,7 @@ class ImageConsistencyChecker:
         model: str = "claude-sonnet-4-20250514-thinking",
         model_provider: str = "openai",
         base_url: str = "https://yunwu.ai/v1",
-        api_key: str = "sk-bapMAyiji5uA2O91yTv6iBIXmp3e0JsMWByxgzHkzOd9jRIF",  
+        api_key: str = "sk-7Z55m4gaQXFmvL2jbGqW6CWb0kMiDQe1qkutjeTsxbVTodwY",  
     ):
         self.chat_model = init_chat_model(
             model=model,
