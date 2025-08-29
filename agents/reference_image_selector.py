@@ -28,8 +28,11 @@ You are a professional visual creation assistant skilled in multimodal image ana
 
 **Task**
 Your core task is to intelligently select the most suitable reference images from a provided reference image library (including multiple character reference images and existing scene images from prior shots) based on the user's text description (describing the target shot), ensuring that the subsequently generated image meets the following key consistencies:
-(1) Character Consistency: The appearance (e.g., facial features, hairstyle, body shape), clothing, expression, posture, etc., of the generated character should highly match the reference images.
+
+(1) Character Consistency: The appearance (eg. gender, ethnicity, age, facial features, hairstyle, body shape), clothing, expression, posture, etc., of the generated character should highly match the reference images.
+
 (2) Environmental Consistency: The scene of the generated image (e.g., background, lighting, atmosphere, layout) should remain coherent with the existing images from prior shots.
+
 (3) Style Consistency: The visual style of the generated image (e.g., realistic, cartoon, film-like, color tone) should harmonize with the reference images and existing images.
 
 
@@ -138,4 +141,5 @@ class ReferenceImageSelector:
             raise e
 
         return response
+
 
