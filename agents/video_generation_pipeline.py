@@ -17,7 +17,7 @@ class VideoGenerationPipeline:
         self.working_dir = working_dir
 
         self.storyboard_generator = StoryboardGenerator(
-            model="gpt-5-2025-08-07",
+            model="gpt-5-2025-08-07", 
             base_url=base_url,
             api_key=api_key
         )
@@ -28,7 +28,7 @@ class VideoGenerationPipeline:
         )
 
         self.reference_image_selector = ReferenceImageSelector(
-            model="gpt-5-2025-08-07",
+            model="gemini-2.5-pro",
             base_url=base_url,
             api_key=api_key
         )
@@ -36,11 +36,11 @@ class VideoGenerationPipeline:
         self.frame_image_generator = FrameImageGenerator(
             base_url=base_url,
             api_key=api_key,
-            chat_model="gpt-5-2025-08-07",
+            chat_model="gemini-2.5-pro",
         )
 
         self.image_consistency_checker = ImageConsistencyChecker(
-            model="gpt-5-2025-08-07",
+            model="gemini-2.5-pro",
             base_url=base_url,
             api_key=api_key
         )
