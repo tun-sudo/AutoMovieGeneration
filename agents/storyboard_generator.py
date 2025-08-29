@@ -13,7 +13,7 @@ from agents.elements import Character, Shot
 
 system_prompt_template_extract_characters = \
 """
-You are a top-tier script analysis engine.
+You are a top-tier movie script analysis expert.
 
 **Task**
 Your task is to analyze the provided script and extract all relevant character information.
@@ -26,7 +26,6 @@ Below is a simple example of the input:
 <SCRIPT_START>
 A young woman sits alone at a table, staring out the window. She takes a sip of her coffee and sighs. The liquid is no longer warm, just a bitter reminder of the time that has passed. Outside, the world moves in a blur of hurried footsteps and distant car horns, but inside the quiet café, time feels thick and heavy.
 Her finger traces the rim of the ceramic mug, following the imperfect circle over and over. The decision she had to make was supposed to be simple—a mere checkbox on the form of her life. Yesor No. Stayor Go. Yet, it had rooted itself in her chest, a tangled knot of fear and longing.
-A memory surfaced, unbidden: her father's voice, warm and sure, telling her, “The bravest thing you can do is listen to your own heart, even when it's whispering.” But her heart wasn't whispering now; it was a dull, confused thud.
 <SCRIPT_END>
 
 **Output**
@@ -34,7 +33,7 @@ A memory surfaced, unbidden: her father's voice, warm and sure, telling her, “
 
 
 **Guidelines**
-1. Group all names referring to the same entity under one character. Select the most appropriate name as the character's identifier.
+1. Group all names referring to the same entity under one character. Select the most appropriate name as the character's identifier. If the person is a real famous person, the real person's name should be retained (e.g., Elon Musk, Bill Gates)
 2. If the character's name is not mentioned, you can use reasonable pronouns to refer to them, including using their occupation or notable physical traits. For example, "the young woman" or "the barista".
 3. For background characters in the script, you do not need to consider them as individual characters.
 4. If a character's traits are not described or only partially outlined in the script, you need to design plausible features based on the context to make their characteristics more complete and detailed, ensuring they are vivid and evocative.
@@ -61,7 +60,7 @@ class CharactersResponse(BaseModel):
 
 system_prompt_template_get_next_shot = \
 """
-You are a professional film director and storyboard artist skilled in designing coherent and expressive shots. You are also highly proficient in using AI video generation tools, including image generation tools (GPT-4o Image, Flux Kontext, Imagen, etc.) and video generation tools (Veo, Kling, Sora, etc.).
+You are a professional AI film director and storyboard artist, skilled at designing coherent, expressively tense shots and story-driven camera movement.
 
 **Task**
 Your task is to design detailed representation for the next shot based on the script segment and description of existing shots provided by the user.
@@ -113,7 +112,7 @@ Shot 2:
 3. When crafting a shot, it is crucial to define the narrative purpose and the specific information you intend to communicate to the audience. Each shot should have a clear function, such as establishing environment, revealing spatial relationships between characters, showing character reactions.
 4. When describing the first and last frame, it is essential to include the shot type (such as close-up, wide shot, medium shot, etc.), the camera angle (e.g., eye-level angle, high angle, low angle, over-the-shoulder, first-person view, etc.), and the visual description (including the positioning and posture of characters and objects within the frame, lighting, settings, etc.). The description should focus on depicting static imagery, avoiding any reference to actions or movement. Use camera angles, shot sizes, lighting, and composition appropriately to convey visual information and atmosphere.
 5. When describing visual content, it should be addressed from two aspects: camera movement and the movement of elements within the frame. 
-For camera movement, it can be described by how the initial state transitions to the final state—for example, "the camera gradually pulls from a medium shot to a close-up," or the camera follows a character's movement. Of course, in most narrative shots, the camera remains stationary, and this stillness should also be explicitly noted in the description.
+For camera movement, it can be described by how the initial state transitions to the final state—for example, "the camera gradually pulls from a medium shot to a close-up," or the camera follows a character's movement. In some scenes of dialogue-type narrative shots, the camera needs to remain still, and this stillness should also be clearly pointed out in the description.
 For element movement (such as character actions, object displacement, or lighting changes), the initial state, final state, and the transition process should be described. Examples include: "Character A walks from the right side of the frame to the left until exiting the view," "the sky rapidly shifts from day to night," or "the key is thrown from Character A's hand onto the table."
 6. For each shot, you can assign at most one line of dialogue to a character.
 7. Ensure that the visual content described in the first frame matches the visual content described in the final frame after undergoing the motion described by the visual content.
@@ -144,7 +143,7 @@ class StoryboardGenerator:
         model: str = "claude-sonnet-4-20250514-thinking",
         model_provider: str = "openai",
         base_url: str = "https://yunwu.ai/v1",
-        api_key: str = "sk-bapMAyiji5uA2O91yTv6iBIXmp3e0JsMWByxgzHkzOd9jRIF",
+        api_key: str = "sk-7Z55m4gaQXFmvL2jbGqW6CWb0kMiDQe1qkutjeTsxbVTodwY",
     ):
         self.chat_model = init_chat_model(
             model=model,
