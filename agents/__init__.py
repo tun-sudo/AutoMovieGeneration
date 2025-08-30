@@ -1,18 +1,15 @@
+from agents.best_image_selector import BestImageSelector
 from agents.character_image_generator import CharacterImageGenerator
-from agents.frame_image_generator import FrameImageGenerator
-from agents.storyboard_generator import StoryboardGenerator
-from agents.elements import Character, Shot
+from agents.frame_candidate_images_generator import FrameCandidateImagesGenerator
 from agents.reference_image_selector import ReferenceImageSelector
-from agents.image_consistency_checker import ImageConsistencyChecker
+from agents.storyboard_generator import StoryboardGenerator
 from agents.video_generator import VideoGenerator
 
 __all__ = [
+    "BestImageSelector",
     "CharacterImageGenerator",
-    "FrameImageGenerator",
-    "StoryboardGenerator",
-    "Character",
-    "Shot",
+    "FrameCandidateImagesGenerator",
     "ReferenceImageSelector",
-    "ImageConsistencyChecker",
+    "StoryboardGenerator",
     "VideoGenerator",
 ]

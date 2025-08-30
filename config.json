@@ -1,0 +1,31 @@
+{
+    "StoryboardGenerator": {
+        "chat_model": "gpt-5-2025-08-07",
+        "api_key": "sk-luBuLGKLIdPoN78dJ3uc9Ra9n1QG2fypirTyRa7qs2WD8OOs",  
+        "base_url": "https://yunwu.ai/v1"
+    },
+    "CharacterImageGenerator": {
+        "image_generator_model": "gemini",
+        "api_key": "sk-luBuLGKLIdPoN78dJ3uc9Ra9n1QG2fypirTyRa7qs2WD8OOs",
+        "base_url": "https://yunwu.ai"
+    },
+    "ReferenceImageSelector": {
+        "chat_model": "gpt-5-2025-08-07",
+        "api_key": "sk-luBuLGKLIdPoN78dJ3uc9Ra9n1QG2fypirTyRa7qs2WD8OOs",
+        "base_url": "https://yunwu.ai/v1"
+    },
+    "FrameCandidateImagesGenerator": {
+        "image_generator_model": "gemini",
+        "api_key": "sk-luBuLGKLIdPoN78dJ3uc9Ra9n1QG2fypirTyRa7qs2WD8OOs",
+        "base_url": "https://yunwu.ai"
+    },
+    "BestImageSelector": {
+        "chat_model": "gpt-5-2025-08-07",
+        "api_key": "sk-luBuLGKLIdPoN78dJ3uc9Ra9n1QG2fypirTyRa7qs2WD8OOs",
+        "base_url": "https://yunwu.ai/v1"
+    },
+    "VideoGenerator": {
+        "base_url": "https://yunwu.ai",
+        "api_key": "sk-luBuLGKLIdPoN78dJ3uc9Ra9n1QG2fypirTyRa7qs2WD8OOs"
+    }
+}

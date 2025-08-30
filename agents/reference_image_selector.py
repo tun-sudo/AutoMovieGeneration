@@ -1,26 +1,11 @@
-from openai import OpenAI
-import base64
-from typing import Optional, Union, List
-import requests
-from agents.storyboard_generator import Character, Shot
-import os
 import logging
-from agents.elements import Character, Shot
+from typing import List, Tuple
+from tenacity import retry
 from pydantic import BaseModel, Field
-from typing import List, Optional, Literal, Tuple
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import JsonOutputParser, PydanticOutputParser
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain.chat_models import init_chat_model
-from pydantic import BaseModel, Field
-from typing import List, Optional, Literal, Tuple
-from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.chat_history import BaseChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
-from tenacity import retry, stop_after_attempt, wait_exponential
-import logging
-from agents.elements import Character, Shot
-import json
+from agents.utils.image import image_to_base64_with_mime
 
 system_prompt_template_select_reference_images = \
 """
@@ -63,13 +48,6 @@ human_prompt_template_select_reference_images = \
 """
 
 
-def encode_base64(file_path):
-    with open(file_path, 'rb') as image_file:
-        image_data = image_file.read()
-        base64_encoded_data = base64.b64encode(image_data)
-        base64_string = base64_encoded_data.decode('utf-8')
-        return f"data:image/jpeg;base64,{base64_string}"
-
 
 
 class RefImageIndicesAndTextPrompt(BaseModel):
@@ -87,16 +65,16 @@ class RefImageIndicesAndTextPrompt(BaseModel):
 class ReferenceImageSelector:
     def __init__(
         self,
+        chat_model: str,
         base_url: str,
         api_key: str,
         model_provider: str = "openai",
-        model: str = "claude-sonnet-4-20250514-thinking",
     ):
         self.base_url = base_url
         self.api_key = api_key
 
         self.chat_model = init_chat_model(
-            model=model,
+            model=chat_model,
             model_provider=model_provider,
             base_url=base_url,
             api_key=api_key,
@@ -117,7 +95,7 @@ class ReferenceImageSelector:
             })
             human_content.append({
                 "type": "image_url",
-                "image_url": {"url": encode_base64(image_url)}
+                "image_url": {"url": image_to_base64_with_mime(image_url)}
             })
         human_content.append({
             "type": "text",

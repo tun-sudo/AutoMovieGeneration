@@ -1,15 +1,12 @@
-from langchain_core.messages import HumanMessage, SystemMessage
+import logging
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import JsonOutputParser, PydanticOutputParser
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain.chat_models import init_chat_model
 from pydantic import BaseModel, Field
-from typing import List, Optional, Literal, Tuple
-from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.chat_history import BaseChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
-from tenacity import retry, stop_after_attempt, wait_exponential
-import logging
+from typing import List
+from tenacity import retry
 from agents.elements import Character, Shot
+
 
 system_prompt_template_extract_characters = \
 """
@@ -140,13 +137,13 @@ human_prompt_template_get_next_shot = \
 class StoryboardGenerator:
     def __init__(
         self,
-        model: str = "claude-sonnet-4-20250514-thinking",
+        chat_model: str,
+        base_url: str,
+        api_key: str,
         model_provider: str = "openai",
-        base_url: str = "https://yunwu.ai/v1",
-        api_key: str = "sk-7Z55m4gaQXFmvL2jbGqW6CWb0kMiDQe1qkutjeTsxbVTodwY",
     ):
         self.chat_model = init_chat_model(
-            model=model,
+            model=chat_model,
             model_provider=model_provider,
             base_url=base_url,
             api_key=api_key,
