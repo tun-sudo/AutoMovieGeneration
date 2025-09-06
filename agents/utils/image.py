@@ -22,12 +22,15 @@ def download_image(url, save_path):
         raise e
 
 
-def image_to_base64_with_mime(image_path):
-    mime_type, _ = mimetypes.guess_type(image_path)
-    if mime_type is None:
-        mime_type = 'application/octet-stream'
-
+def image_to_base64(image_path, mime: bool = True) -> str:
     with open(image_path, 'rb') as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+        b64 = base64.b64encode(image_file.read()).decode('utf-8')
 
-    return f"data:{mime_type};base64,{encoded_string}"
+    if mime:
+        mime_type, _ = mimetypes.guess_type(image_path)
+        if mime_type is None:
+            mime_type = 'application/octet-stream'
+        return f"data:{mime_type};base64,{b64}"
+
+    return b64
+

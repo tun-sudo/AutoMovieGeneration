@@ -4,7 +4,7 @@ import base64
 import time
 import requests
 import os
-from agents.utils.image import image_to_base64_with_mime, download_image
+from agents.utils.image import image_to_base64, download_image
 from agents.utils.video import download_video
 import logging
 
@@ -39,7 +39,7 @@ class VideoGenerator:
         images = []
         for image_path in image_paths:
             if image_path:
-                images.append(image_to_base64_with_mime(image_path))
+                images.append(image_to_base64(image_path))
         payload = json.dumps({
             "prompt": prompt,
             "model": "veo2-fast-frames" if len(images) == 2 else "veo3-fast-frames",

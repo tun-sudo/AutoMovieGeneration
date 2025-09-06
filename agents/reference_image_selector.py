@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain.chat_models import init_chat_model
-from agents.utils.image import image_to_base64_with_mime
+from agents.utils.image import image_to_base64
 
 system_prompt_template_select_reference_images = \
 """
@@ -95,7 +95,7 @@ class ReferenceImageSelector:
             })
             human_content.append({
                 "type": "image_url",
-                "image_url": {"url": image_to_base64_with_mime(image_url)}
+                "image_url": {"url": image_to_base64(image_url)}
             })
         human_content.append({
             "type": "text",

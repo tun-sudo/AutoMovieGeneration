@@ -24,7 +24,7 @@ reflects the content described in the text (Note: The text description pertains 
 The user will provide the following content:
 - Reference images: These include images of characters or other perspectives, each along with a brief text description. For example, "Reference Image 0: A young girl with long brown hair wearing a red dress." then follow the corresponding image. The index starts from 0.
 - Candidate Generated Images: The generated images to be evaluated. For example, "Generated Image 0", then follow a generated image. The index starts from 0.
-- Text Description for Generated Image: This describes what the generated image should contain. It is enclosed <IMAGE_DESCRIPTION_START> and <IMAGE_DESCRIPTION_END> tags.
+- Text Description for Generated Image: This describes what the generated image should contain. It is enclosed within <IMAGE_DESCRIPTION_START> and <IMAGE_DESCRIPTION_END> tags.
 
 **OUTPUT**
 {format_instructions}

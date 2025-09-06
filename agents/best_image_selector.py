@@ -5,7 +5,7 @@ from tenacity import retry
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain.chat_models import init_chat_model
-from agents.utils.image import image_to_base64_with_mime
+from agents.utils.image import image_to_base64
 
 
 
@@ -23,7 +23,7 @@ Based on the reference image provided by the user, the text description of the t
 The user will provide the following content:
 - Reference images: These include images of characters or other perspectives, each along with a brief text description. For example, "Reference Image 0: A young girl with long brown hair wearing a red dress." then follow the corresponding image. The index starts from 0.
 - Candidate images: The candidate images to be evaluated. For example, "Generated Image 0", then follow a generated image. The index starts from 0.
-- Text description for target image: This describes what the generated image should contain. It is enclosed <TARGET_DESCRIPTION_START> and <TARGET_DESCRIPTION_END> tags.
+- Text description for target image: This describes what the generated image should contain. It is enclosed within <TARGET_DESCRIPTION_START> and <TARGET_DESCRIPTION_END> tags.
 
 **OUTPUT**
 {format_instructions}
@@ -102,7 +102,7 @@ class BestImageSelector:
                 })
                 human_content.append({
                     "type": "image_url",
-                    "image_url": {"url": image_to_base64_with_mime(ref_image_path)}
+                    "image_url": {"url": image_to_base64(ref_image_path)}
                 })
 
             for idx, candidate_image_path in enumerate(candidate_image_paths):
@@ -112,7 +112,7 @@ class BestImageSelector:
                 })
                 human_content.append({
                     "type": "image_url",
-                    "image_url": {"url": image_to_base64_with_mime(candidate_image_path)}
+                    "image_url": {"url": image_to_base64(candidate_image_path)}
                 })
             human_content.append({
                 "type": "text",
