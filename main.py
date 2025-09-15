@@ -18,8 +18,8 @@ script = open(script_path, "r", encoding="utf-8").read()
 with open("config.json", "r", encoding="utf-8") as f:
     config = json.load(f)
 pipeline = VideoGenerationPipeline(
-   config=config,
-   working_dir=working_dir
+    config=config,
+    working_dir=working_dir
 )
 
 pipeline(script, style=style)

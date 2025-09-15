@@ -1,42 +1,62 @@
-import json
-import logging
-from agents.tools.gpt4o_image import GPT4oImageGenerator
-from agents.tools.gemini_image import GeminiImageGenerator
-
-logging.basicConfig(level=logging.INFO)
+import asyncio
+from PIL import Image
+from tools.image_generator.nanobanana import NanoBananaImageGenerator
+from tools.image_generator.gemini import GeminiImageGenerator
 
 
-# image_generator = GPT4oImageGenerator(
-#     api_key="sk-luBuLGKLIdPoN78dJ3uc9Ra9n1QG2fypirTyRa7qs2WD8OOs",
-#     base_url="https://yunwu.ai/v1",
-# )
+api_key = "sk-7Z55m4gaQXFmvL2jbGqW6CWb0kMiDQe1qkutjeTsxbVTodwY"
+base_url = "https://yunwu.ai"
 
-# image_generator(
-#     model="gpt-image-1-all",
-#     prompt="Fig 1 depicts a cartoon cat. Draw a gorgeous image of a river made of white owl feathers, snaking its way through a serene winter landscape. The cat sits on the riverbank, watching the water flow.",
-#     image_paths=["example_inputs/images/cat.png"],
-#     num_generated_images=2,
-#     save_path_or_dir="example_inputs/images/cat_river_gpt4o",
-#     size="1536x1024",
-# )
-
-
-image_generator = GeminiImageGenerator(
-    api_key="sk-RsgJVQohu9e1HBMgdYsy9mQFKs3ue4fZXL2iGMjiiupiViQB",
-    base_url="https://yunwu.ai",
-)
-
-image_generator(
-    model="gemini-2.5-flash-image-preview",
-    prompt="Draw a gorgeous image of a river made of white owl feathers, snaking its way through a serene winter landscape. Size: 1536x1024",
-    num_generated_images=1,
-    save_path_or_dir="example_inputs/images/river.png"
-)
-
-# image_generator(
+# save_prefix = "example_inputs/images/gemini_output"
+# image_generator = GeminiImageGenerator(
+#     api_key=api_key,
+#     base_url=base_url,
 #     model="gemini-2.5-flash-image-preview",
-#     prompt="Fig 1 depicts a cartoon cat. Fig 2 depicts a river. Create an image: The cat sits on the riverbank, watching the water flow.",
-#     image_paths=["example_inputs/images/魔法猫咪.png", "example_inputs/images/river.png"],
-#     num_generated_images=1,
-#     save_path_or_dir="example_inputs/images/cat_river.png",
 # )
+
+save_prefix = "example_inputs/images/nanobanana_output"
+image_generator = NanoBananaImageGenerator(
+    api_key=api_key,
+    base_url=base_url,
+    model="nano-banana",
+)
+
+image = asyncio.run(
+    image_generator.generate_single_image(
+        prompt="A cute magical cat, digital art, watching the stars, running on the beach.",
+        reference_images=[Image.open("example_inputs/images/魔法猫咪.png")],
+        size="1600x1200",
+    )
+)
+image.save(f"{save_prefix}/single_magical_cat.png")
+
+# images = asyncio.run(
+#     image_generator.generate_multiple_images_from_one_prompt(
+#         prompt="A cute magical cat, digital art, watching the stars, running on the beach. The cat refers to the cat in the first image.",
+#         reference_images=[Image.open("example_inputs/images/魔法猫咪.png")],
+#         num_images=2,
+#     )
+# )
+# images.save_all_images(
+#     dir_path=f"{save_prefix}/multiple_magical_cat",
+#     base_filename="magical_cat",
+# )
+
+# images_per_prompt = asyncio.run(
+#     image_generator.generate_multiple_images_from_multiple_prompts(
+#         prompts=[
+#             "A cute magical cat, digital art, watching the stars, running on the beach. The cat refers to the cat in the first image.",
+#             "A cute magical cat, digital art, watching the stars, running on the beach. The cat refers to the cat in the first image.",
+#         ],
+#         reference_images=[
+#             [Image.open("example_inputs/images/魔法猫咪.png")],
+#             [Image.open("example_inputs/images/小八.png")],
+#         ],
+#         num_images_per_prompt=2,
+#     )
+# )
+# for idx, images in enumerate(images_per_prompt):
+#     images.save_all_images(
+#         dir_path=f"{save_prefix}/multiple_magical_cat_{idx}",
+#         base_filename="magical_cat",
+#     )

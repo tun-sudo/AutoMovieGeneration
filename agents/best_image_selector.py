@@ -1,11 +1,11 @@
 import logging
 from typing import List, Tuple
 from pydantic import BaseModel, Field
-from tenacity import retry
+from tenacity import retry, stop_after_attempt
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain.chat_models import init_chat_model
-from agents.utils.image import image_to_base64
+from utils.image import image_path_to_b64
 
 
 
@@ -23,7 +23,7 @@ Based on the reference image provided by the user, the text description of the t
 The user will provide the following content:
 - Reference images: These include images of characters or other perspectives, each along with a brief text description. For example, "Reference Image 0: A young girl with long brown hair wearing a red dress." then follow the corresponding image. The index starts from 0.
 - Candidate images: The candidate images to be evaluated. For example, "Generated Image 0", then follow a generated image. The index starts from 0.
-- Text description for target image: This describes what the generated image should contain. It is enclosed within <TARGET_DESCRIPTION_START> and <TARGET_DESCRIPTION_END> tags.
+- Text description for target image: This describes what the generated image should contain. It is enclosed <TARGET_DESCRIPTION_START> and <TARGET_DESCRIPTION_END> tags.
 
 **OUTPUT**
 {format_instructions}
@@ -71,8 +71,11 @@ class BestImageSelector:
         )
 
 
-    @retry
-    def __call__(
+    @retry(
+        stop=stop_after_attempt(3),
+        after=lambda retry_state: logging.warning(f"Retrying best image selection due to {retry_state.outcome.exception()}"),
+    )
+    async def __call__(
         self,
         ref_image_path_and_text_pairs: List[Tuple[str, str]],
         target_description: str,
@@ -90,50 +93,52 @@ class BestImageSelector:
             A list of paths to the candidate images to be evaluated.
         """
 
-        try:
-            ref_image_paths = [ref_image_path for ref_image_path, _ in ref_image_path_and_text_pairs]
-            logging.info(f"Selecting the best image from candidates: {candidate_image_paths}")
+        if not candidate_image_paths:
+            logging.warning("No candidate images provided; skipping best image selection")
+            raise ValueError("No candidate images to select from")
 
-            human_content = []
-            for idx, (ref_image_path, text) in enumerate(ref_image_path_and_text_pairs):
-                human_content.append({
-                    "type": "text",
-                    "text": f"Reference Image {idx}: {text}"
-                })
-                human_content.append({
-                    "type": "image_url",
-                    "image_url": {"url": image_to_base64(ref_image_path)}
-                })
+        logging.info(f"Selecting the best image from candidates: {candidate_image_paths}")
 
-            for idx, candidate_image_path in enumerate(candidate_image_paths):
-                human_content.append({
-                    "type": "text",
-                    "text": f"Candidate Image {idx}"
-                })
-                human_content.append({
-                    "type": "image_url",
-                    "image_url": {"url": image_to_base64(candidate_image_path)}
-                })
+        human_content = []
+        for idx, (ref_image_path, text) in enumerate(ref_image_path_and_text_pairs):
             human_content.append({
                 "type": "text",
-                "text": human_prompt_template_select_most_consistent_image.format(target_description=target_description)
+                "text": f"Reference Image {idx}: {text}"
+            })
+            human_content.append({
+                "type": "image_url",
+                "image_url": {"url": image_path_to_b64(ref_image_path, mime=True)}
             })
 
-            parser = PydanticOutputParser(pydantic_object=BestImageResponse)
+        for idx, candidate_image_path in enumerate(candidate_image_paths):
+            human_content.append({
+                "type": "text",
+                "text": f"Candidate Image {idx}"
+            })
+            human_content.append({
+                "type": "image_url",
+                "image_url": {"url": image_path_to_b64(candidate_image_path, mime=True)}
+            })
+        human_content.append({
+            "type": "text",
+            "text": human_prompt_template_select_most_consistent_image.format(target_description=target_description)
+        })
 
-            messages = [
-                SystemMessage(content=system_prompt_template_select_most_consistent_image.format(format_instructions=parser.get_format_instructions())),
-                HumanMessage(content=human_content)
-            ]
+        parser = PydanticOutputParser(pydantic_object=BestImageResponse)
 
-            chain = self.chat_model | parser
+        messages = [
+            SystemMessage(content=system_prompt_template_select_most_consistent_image.format(format_instructions=parser.get_format_instructions())),
+            HumanMessage(content=human_content)
+        ]
 
-            response = chain.invoke(messages)
-            best_image_path = candidate_image_paths[response.best_image_index]
-            logging.info(f"Best image selected: {best_image_path}")
-            logging.info(f"Selection reason: {response.reason}")
-            return best_image_path
+        chain = self.chat_model | parser
 
-        except Exception as e:
-            logging.error(f"Error selecting the best image: {e}")
-            raise e
+        response = await chain.ainvoke(messages)
+        idx = response.best_image_index
+        if not isinstance(idx, int) or idx < 0 or idx >= len(candidate_image_paths):
+            logging.warning(f"Received invalid best_image_index={idx}; defaulting to 0")
+            idx = 0
+        best_image_path = candidate_image_paths[idx]
+        logging.info(f"Best image selected: {best_image_path}")
+        logging.info(f"Selection reason: {response.reason}")
+        return best_image_path
