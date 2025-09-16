@@ -19,6 +19,7 @@ class BasePipeline:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+
     @classmethod
     def init_from_config(
         cls,
@@ -31,9 +32,13 @@ class BasePipeline:
         components = {}
         for key, value in config.items():
             class_path = value["class_path"]
-            init_args = value["init_args"]
             module_name, class_name = class_path.rsplit('.', 1)
             module = importlib.import_module(module_name)
-            components[key] = getattr(module, class_name)(**init_args)
+            if "init_args" in value:
+                init_args = value["init_args"]
+                components[key] = getattr(module, class_name)(**init_args)
+            elif "config_path" in value:
+                config_file_path = value["config_path"]
+                components[key] = getattr(module, class_name).init_from_config(config_file_path, working_dir=working_dir)
 
         return cls(**components, working_dir=working_dir)

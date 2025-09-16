@@ -25,3 +25,5 @@ class Idea2ScriptPipeline(BasePipeline):
             f.write(enhanced_script)
 
         print(f"✨ Enhanced script saved to {enhanced_path}")
+
+        return enhanced_script
