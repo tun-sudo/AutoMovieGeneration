@@ -66,7 +66,7 @@ class Script2VideoPipeline(BasePipeline):
         print("="*60)
 
         if character_registry is None:
-            print("⭕​ Phase 0: Extract characters and generate portraits...")
+            print("⭕ Phase 0: Extract characters and generate portraits...")
             start_time_0 = time.time()
             character_registry = await self._extract_characters_and_generate_portraits(
                 script=script,
@@ -77,7 +77,7 @@ class Script2VideoPipeline(BasePipeline):
 
 
 
-        print("⭕​ Phase 1: Design storyboard, generate frames and generate shots...")
+        print("⭕ Phase 1: Design storyboard, generate frames and generate shots...")
         start_time_1 = time.time()
         await self._design_storyboard_and_generate_shots(
             script=script,
@@ -113,7 +113,7 @@ class Script2VideoPipeline(BasePipeline):
                     character_data = json.load(f)
                     character = CharacterInScene.model_validate(character_data)
                     characters.append(character)
-            print(f"​​⏭️ Skipped character extraction, loaded {len(characters)} characters from existing registry.")
+            print(f"⏭️ Skipped character extraction, loaded {len(characters)} characters from existing registry.")
         else:
             print(f"⬜ Extracting characters from script...")
             characters: list[CharacterInScene] = await self.character_extractor(script)
@@ -141,7 +141,7 @@ class Script2VideoPipeline(BasePipeline):
                     image.save(portrait_path)
                     return character, portrait_path, "A front-view portrait of " + character.identifier_in_scene + "."
             else:
-                print(f"​​⏭️ Skipped portrait generation for {character.identifier_in_scene}, already exists in registry.")
+                print(f"⏭️ Skipped portrait generation for {character.identifier_in_scene}, already exists in registry.")
                 return character, None, None
 
         sem = asyncio.Semaphore(3)
@@ -152,7 +152,7 @@ class Script2VideoPipeline(BasePipeline):
         if len(tasks) > 0:
             print(f"⬜ Generating portraits for characters...")
         else:
-            print(f"​​⏭️ Skipped portrait generation, all characters already exist in registry.")
+            print(f"⏭️ Skipped portrait generation, all characters already exist in registry.")
 
         for task in asyncio.as_completed(tasks):
             character, portrait_path, description = await task
@@ -206,7 +206,7 @@ class Script2VideoPipeline(BasePipeline):
                 with open(shot_description_path, 'r', encoding='utf-8') as f:
                     shot_data = json.load(f)
                 shot_description = Shot.model_validate(shot_data)
-                print(f"​​⏭️ Skipped designing shot {current_shot_idx}, loaded from existing file.")
+                print(f"⏭️ Skipped designing shot {current_shot_idx}, loaded from existing file.")
             else:
                 start_time_design_shot = time.time()
                 shot_description: Shot = await self.storyboard_generator.get_next_shot_description(
@@ -230,7 +230,7 @@ class Script2VideoPipeline(BasePipeline):
 
                 best_save_path = os.path.join(working_dir, f"{current_shot_idx}_{frame_type}.png")
                 if os.path.exists(best_save_path):
-                    print(f"​​⏭️ Skipped generating {frame_type} for shot {current_shot_idx}, already exists.")
+                    print(f"⏭️ Skipped generating {frame_type} for shot {current_shot_idx}, already exists.")
                     continue
 
                 start_time_generate_frame = time.time()
@@ -240,7 +240,7 @@ class Script2VideoPipeline(BasePipeline):
                 if os.path.exists(ref_path):
                     with open(ref_path, 'r', encoding='utf-8') as f:
                         reference = json.load(f)
-                    print(f"​​⏭️ Skipped selecting reference image for {frame_type} of shot {current_shot_idx}, loaded from existing file.")
+                    print(f"⏭️ Skipped selecting reference image for {frame_type} of shot {current_shot_idx}, loaded from existing file.")
                 else:
                     start_time_select_reference = time.time()
                     reference = self.reference_image_selector(
@@ -261,7 +261,7 @@ class Script2VideoPipeline(BasePipeline):
                 existing_frames = os.listdir(cur_frame_candidates_dir)
                 missing_indices = [i for i in range(num_candidates) if f"{i}.png" not in existing_frames]
                 if len(existing_frames) >= num_candidates:
-                    print(f"​​⏭️ Skipped generating {frame_type} for shot {current_shot_idx}, already have {len(existing_frames)} candidates.")
+                    print(f"⏭️ Skipped generating {frame_type} for shot {current_shot_idx}, already have {len(existing_frames)} candidates.")
                 else:
                     print(f"⬜ Generating {num_candidates - len(existing_frames)} candidates for {frame_type} of shot {current_shot_idx}...")
                     start_time_generate_candidates = time.time()
@@ -311,14 +311,12 @@ class Script2VideoPipeline(BasePipeline):
 
 
         shots = existing_shots
-
-
         # Generate video for the shot
         async def generate_video_for_single_shot(sem, shot: Shot):
             async with sem:
                 video_path = os.path.join(working_dir, f"{shot.idx}_video.mp4")
                 if os.path.exists(video_path):
-                    print(f"​​⏭️ Skipped generating video for shot {shot.idx}, already exists.")
+                    print(f"⏭️ Skipped generating video for shot {shot.idx}, already exists.")
                     return
 
                 reference_images = []
