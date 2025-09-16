@@ -14,38 +14,38 @@ from PIL import Image
 from components.event import Event
 from components.scene import Scene
 from components.character import CharacterInScene, CharacterInNovel, CharacterInEvent
+from pipelines.base import BasePipeline
 
 
+class Novel2MoviePipeline(BasePipeline):
 
-class Novel2MoviePipeline:
+    # def __init__(
+    #     self,
+    #     working_dir: str = ".working_dir",
+    #     **kwargs,
+    # ):
+    #     self.working_dir = working_dir
+    #     for key, value in kwargs.items():
+    #         setattr(self, key, value)
 
-    def __init__(
-        self,
-        working_dir: str = ".working_dir",
-        **kwargs,
-    ):
-        self.working_dir = working_dir
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+    # @classmethod
+    # def init_from_config(
+    #     cls,
+    #     config_path: str,
+    #     working_dir: str = ".working_dir",
+    # ):
+    #     with open(config_path, 'r') as config_file:
+    #         config = yaml.safe_load(config_file)
 
-    @classmethod
-    def init_from_config(
-        cls,
-        config_path: str,
-        working_dir: str = ".working_dir",
-    ):
-        with open(config_path, 'r') as config_file:
-            config = yaml.safe_load(config_file)
+    #     components = {}
+    #     for key, value in config.items():
+    #         class_path = value["class_path"]
+    #         init_args = value["init_args"]
+    #         module_name, class_name = class_path.rsplit('.', 1)
+    #         module = importlib.import_module(module_name)
+    #         components[key] = getattr(module, class_name)(**init_args)
 
-        components = {}
-        for key, value in config.items():
-            class_path = value["class_path"]
-            init_args = value["init_args"]
-            module_name, class_name = class_path.rsplit('.', 1)
-            module = importlib.import_module(module_name)
-            components[key] = getattr(module, class_name)(**init_args)
-
-        return cls(**components, working_dir=working_dir)
+    #     return cls(**components, working_dir=working_dir)
 
 
 
@@ -137,7 +137,7 @@ class Novel2MoviePipeline:
             if os.path.exists(event_json_path):
                 with open(event_json_path, "r", encoding="utf-8") as f:
                     event_data = json.load(f)
-                event = Event.model_validate(event_data)
+                event: Event = Event.model_validate(event_data)
                 extracted_events.append(event)
 
         if len(extracted_events) > 0:
@@ -534,3 +534,33 @@ class Novel2MoviePipeline:
         print("📋 Step 6: Generate the reference images for all characters in the specific scene".center(80, "-"))
 
 
+
+        # Step 7: Generate video for each scene
+        print("📋 Step 7: Generate the video for each scene".center(80, "-"))
+        working_dir_scene_videos = os.path.join(self.working_dir, "videos")
+        os.makedirs(working_dir_scene_videos, exist_ok=True)
+
+        for event in extracted_events:
+            scenes: List[Scene] = event_idx_to_scenes[event.index]
+            for scene in scenes:
+                scene_video_dir = os.path.join(working_dir_scene_videos, f"event_{event.index}", f"scene_{scene.idx}")
+                os.makedirs(scene_video_dir, exist_ok=True)
+
+                self.script2video_pipeline.working_dir = scene_video_dir
+                script = scene.script
+                style = "realistic movie style"
+                character_registry = {}
+                for character in scene.characters:
+                    character_registry[character.identifier_in_scene] = [
+                        {
+                            "path": os.path.join(base_character_portrait_dir, f"character_{character.index}_{character.identifier_in_scene}.png"),
+                            "description": f"A portrait of {character.identifier_in_scene}",
+                        }
+                    ]
+                await self.script2video_pipeline(
+                    script=script,
+                    style=style,
+                    character_registry=character_registry
+                )
+                print(f"✅ Generated video for event {event.index}, scene {scene.idx}, saved to {scene_video_dir}")
+        print("📋 Step 7: Generate the video for each scene".center(80, "-"))

@@ -22,10 +22,18 @@ reference_image_selector:
 
 
 image_generator:
-  class_path: tools.image_generator.nanobanana.NanoBananaImageGenerator
+  class_path: tools.image_generator.gemini.GeminiImageGenerator
   init_args:
     api_key: sk-RsgJVQohu9e1HBMgdYsy9mQFKs3ue4fZXL2iGMjiiupiViQB
     base_url: https://yunwu.ai
+    api_version: v1beta
+    model: gemini-2.5-flash-image-preview
+
+# image_generator:
+#   class_path: tools.image_generator.nanobanana.NanoBananaImageGenerator
+#   init_args:
+#     api_key: sk-RsgJVQohu9e1HBMgdYsy9mQFKs3ue4fZXL2iGMjiiupiViQB
+#     base_url: https://yunwu.ai
 
 
 best_image_selector:
@@ -43,3 +51,5 @@ video_generator:
     api_key: sk-RsgJVQohu9e1HBMgdYsy9mQFKs3ue4fZXL2iGMjiiupiViQB
     ff2v_model: veo3-fast-frames   # first frame to video
     flf2v_model: veo2-fast-frames  # first and last frame to video
+
+
