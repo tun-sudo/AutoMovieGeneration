@@ -147,7 +147,7 @@ class WanVideoGenerator(BaseVideoGenerator):
                 conn.request("POST", "/task/openapi/outputs", payload, headers)
                 output_res = conn.getresponse()
                 output_data = json.loads(output_res.read().decode("utf-8"))
-                video_url = output_data["data"]["fileUrl"]
+                video_url = output_data["data"][0]["fileUrl"]
                 video = SingleVideo(fmt="url", ext="mp4", data=video_url)
                 return video
             elif query_data["data"] == "FAILED":
