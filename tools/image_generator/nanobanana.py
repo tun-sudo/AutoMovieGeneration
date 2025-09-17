@@ -77,6 +77,9 @@ class NanoBananaImageGenerator(BaseImageGenerator):
                 await asyncio.sleep(1)
                 continue
 
+            if "images" not in response:
+                raise ValueError(f"No image generated")
+
             image_url = response["images"][0]["url"]
             image = ImageGeneratorOutput(fmt="url", ext="png", data=image_url)
             return image
