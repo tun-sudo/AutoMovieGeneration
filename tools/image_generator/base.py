@@ -59,7 +59,7 @@ class BaseImageGenerator:
     async def generate_single_image(
         self,
         prompt: str,
-        reference_image_paths: List[str],
+        reference_image_paths: List[str] = [],
     ) -> ImageGeneratorOutput:
         pass
 
