@@ -8,7 +8,7 @@ from google import genai
 from google.genai import types
 from tenacity import retry, stop_after_attempt
 
-from tools.image_generator.base import BaseImageGenerator, SingleImage, MultipleImages
+from tools.image_generator.base import BaseImageGenerator, ImageGeneratorOutput
 
 # https://ai.google.dev/gemini-api/docs/image-generation?hl=zh-cn
 
@@ -37,9 +37,11 @@ class GeminiImageGenerator(BaseImageGenerator):
     async def generate_single_image(
         self,
         prompt: str,
-        reference_images: List[Image.Image],
+        reference_image_paths: List[str],
         size: Optional[str] = None,
-    ) -> SingleImage:
+    ) -> ImageGeneratorOutput:
+
+        reference_images = [Image.open(path) for path in reference_image_paths]
 
         if size is not None:
             width, height = map(int, size.split("x"))
@@ -62,5 +64,5 @@ class GeminiImageGenerator(BaseImageGenerator):
         if image is None:
             raise ValueError("No image generated")
 
-        return SingleImage(fmt="pil", ext="png", data=image)
+        return ImageGeneratorOutput(fmt="pil", ext="png", data=image)
 

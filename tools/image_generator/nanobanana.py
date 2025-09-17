@@ -8,7 +8,7 @@ import requests
 from utils.image import pil_to_b64
 import json
 import time
-from tools.image_generator.base import BaseImageGenerator, SingleImage
+from tools.image_generator.base import BaseImageGenerator, ImageGeneratorOutput
 from tenacity import retry, stop_after_attempt
 
 # https://yunwu.apifox.cn/api-341952136
@@ -32,9 +32,13 @@ class NanoBananaImageGenerator(BaseImageGenerator):
     async def generate_single_image(
         self,
         prompt: str,
-        reference_images: List[Image.Image],
+        reference_image_paths: List[str],
         size: Optional[str] = None,
-    ) -> SingleImage:
+    ) -> ImageGeneratorOutput:
+        
+        logging.info(f"Calling {self.model} to generate image.")
+
+        reference_images = [Image.open(path) for path in reference_image_paths]
 
         if size is not None:
             width, height = map(int, size.split("x"))
@@ -74,5 +78,5 @@ class NanoBananaImageGenerator(BaseImageGenerator):
                 continue
 
             image_url = response["images"][0]["url"]
-            image = SingleImage(fmt="url", ext="png", data=image_url)
+            image = ImageGeneratorOutput(fmt="url", ext="png", data=image_url)
             return image

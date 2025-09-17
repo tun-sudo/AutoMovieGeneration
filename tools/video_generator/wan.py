@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from PIL import Image
-from tools.video_generator.base import SingleVideo, BaseVideoGenerator
+from tools.video_generator.base import VideoGeneratorOutput, BaseVideoGenerator
 import http.client
 import json
 import http.client
@@ -53,31 +53,26 @@ def upload2runninghub(api_key: str, image: str):
 
 class WanVideoGenerator(BaseVideoGenerator):
     def __init__(
-            self,
-            base_url: str,
-            api_key: str,
-            ff2v_model: str = "wan 2.2 ff2v",  # first frame to video
-            flf2v_model: str = "wan 2.2 flf2v",  # first and last frame to video
+        self,
+        api_key: str,
+        ff2v_model: str = "wan 2.2 ff2v",  # first frame to video
+        flf2v_model: str = "wan 2.2 flf2v",  # first and last frame to video
     ):
-        self.base_url = base_url
         self.api_key = api_key
         self.ff2v_model = ff2v_model
         self.flf2v_model = flf2v_model
 
     async def generate_single_video(
-            self,
-            prompt: str = "",
-            reference_images: list[Image.Image] = [],
+        self,
+        prompt: str = "",
+        reference_image_paths: list[str] = [],
     ):
-        # 暂时save到本地，后面要改reference_images的数据类型
         fieldValues = []
-        for i, img in enumerate(reference_images):
-            path = f"videos/temp_img_{i}.png"
-            img.save(path)
-            fieldValue = upload2runninghub(self.api_key, path)
+        for i, img_path in enumerate(reference_image_paths):
+            fieldValue = upload2runninghub(self.api_key, img_path)
             fieldValues.append(fieldValue)
         conn = http.client.HTTPSConnection("www.runninghub.cn")
-        if len(reference_images) == 1:
+        if len(reference_image_paths) == 1:
             model = self.ff2v_model
             logging.info(f"Calling {model} to generate video...")
             payload = json.dumps({
@@ -125,7 +120,7 @@ class WanVideoGenerator(BaseVideoGenerator):
         conn.request("POST", "/task/openapi/create", payload, headers)
         res = conn.getresponse()
         data = res.read()
-        print(data.decode("utf-8"))
+        # print(data.decode("utf-8"))
         while True:
             # query status
             taskId = json.loads(data.decode("utf-8"))["data"]["taskId"]
@@ -147,8 +142,8 @@ class WanVideoGenerator(BaseVideoGenerator):
                 conn.request("POST", "/task/openapi/outputs", payload, headers)
                 output_res = conn.getresponse()
                 output_data = json.loads(output_res.read().decode("utf-8"))
-                video_url = output_data["data"]["fileUrl"]
-                video = SingleVideo(fmt="url", ext="mp4", data=video_url)
+                video_url = output_data["data"][0]["fileUrl"]
+                video = VideoGeneratorOutput(fmt="url", ext="mp4", data=video_url)
                 return video
             elif query_data["data"] == "FAILED":
                 logging.error(f"Video generation failed: \n{query_data}")

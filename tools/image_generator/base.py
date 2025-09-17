@@ -8,7 +8,7 @@ from PIL import Image
 from utils.image import download_image
 
 
-class SingleImage:
+class ImageGeneratorOutput:
     fmt: Literal["b64", "url", "pil"]
     ext: str = "png"
     data: Union[str, Image.Image]
@@ -54,57 +54,36 @@ class SingleImage:
         save_func(path)
 
 
-class MultipleImages:
-    images: List[SingleImage]
-
-    def __init__(self, images: List[SingleImage]):
-        self.images = images
-
-
-    def save_all_images(self, dir_path: str, base_filename: str) -> None:
-        """Save all images to the specified directory with a base filename.
-
-        Args:
-            dir_path (str): Directory where images will be saved.
-            base_filename (str): Base filename for the saved images.
-        """
-        os.makedirs(dir_path, exist_ok=True)
-        for idx, image in enumerate(self.images):
-            filename = f"{base_filename}_{idx}.png"
-            image.save(os.path.join(dir_path, filename))
-
-
-
 class BaseImageGenerator:
 
     async def generate_single_image(
         self,
         prompt: str,
-        reference_images: List[Image.Image],
-    ) -> SingleImage:
+        reference_image_paths: List[str],
+    ) -> ImageGeneratorOutput:
         pass
 
     async def generate_multiple_images_from_one_prompt(
         self,
         prompt: str,
-        reference_images: List[Image.Image],
+        reference_image_paths: List[str],
         num_images: int,
         **kwargs,
-    ) -> MultipleImages:
+    ) -> List[ImageGeneratorOutput]:
         tasks = [
-            self.generate_single_image(prompt, reference_images, **kwargs)
+            self.generate_single_image(prompt, reference_image_paths, **kwargs)
             for _ in range(num_images)
         ]
         output_images = await asyncio.gather(*tasks)
-        return MultipleImages(images=output_images)
+        return output_images
 
     async def generate_multiple_images_from_multiple_prompts(
         self,
         prompts: List[List[str]],
-        reference_images: List[List[Image.Image]],
+        reference_image_paths: List[List[str]],
         num_images_per_prompt: int = 1,
         **kwargs,
-    ) -> List[MultipleImages]:
+    ) -> List[List[ImageGeneratorOutput]]:
         tasks = [
             self.generate_multiple_images_from_one_prompt(
                 prompt,
@@ -112,7 +91,7 @@ class BaseImageGenerator:
                 num_images=num_images_per_prompt,
                 **kwargs
             )
-            for prompt, ref_image in zip(prompts, reference_images)
+            for prompt, ref_image in zip(prompts, reference_image_paths)
         ]
         output_images = await asyncio.gather(*tasks)
         return output_images

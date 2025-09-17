@@ -19,7 +19,6 @@ from tenacity import retry
 
 class Novel2MoviePipeline(BasePipeline):
 
-    @retry
     async def __call__(
         self,
         novel_text: str,
@@ -413,7 +412,6 @@ class Novel2MoviePipeline(BasePipeline):
 
                 image = await self.image_generator.generate_single_image(
                     prompt=prompt,
-                    reference_images=[],
                     size="512x512",
                 )
                 image.save(image_path)
@@ -469,11 +467,10 @@ class Novel2MoviePipeline(BasePipeline):
 
                 prompt = await self.rewriter(prompt)
 
-                reference_image = Image.open(base_character_image_path)
 
                 image = await self.image_generator.generate_single_image(
                     prompt=prompt,
-                    reference_images=[reference_image],
+                    reference_image_paths=[base_character_image_path],
                     size="512x512",
                 )
                 image.save(image_path)

@@ -1,43 +1,41 @@
+import os
 import asyncio
 import logging
 from PIL import Image
 from tools.video_generator.veo import VeoVideoGenerator
+from tools.video_generator.wan import WanVideoGenerator
 
 logging.basicConfig(level=logging.INFO)
 
-api_key = "sk-RsgJVQohu9e1HBMgdYsy9mQFKs3ue4fZXL2iGMjiiupiViQB"
-base_url = "https://yunwu.ai"
 
-save_prefix = "example_inputs/videos/veo_output"
-video_generator = VeoVideoGenerator(
-    api_key=api_key,
-    base_url=base_url,
+# save_prefix = "example_inputs/videos/veo_output"
+# api_key = "sk-RsgJVQohu9e1HBMgdYsy9mQFKs3ue4fZXL2iGMjiiupiViQB"
+# base_url = "https://yunwu.ai"
+# video_generator = VeoVideoGenerator(
+#     api_key=api_key,
+#     base_url=base_url,
+# )
+
+
+
+save_prefix = "example_inputs/videos/wan_output"
+video_generator = WanVideoGenerator(
+    api_key="9caa641d699a4223b95b7bccebf597c4",
 )
+
+prompt = "A cute magical cat, digital art, watching the stars, running on the beach."
+# reference_image_paths = ["example_inputs/images/nanobanana_output/one_cat.png"]
+reference_image_paths = [
+    "example_inputs/images/nanobanana_output/one_cat.png",
+    "example_inputs/images/nanobanana_output/one_cat.png"
+]
 
 video = asyncio.run(
     video_generator.generate_single_video(
-        prompt="A cute magical cat, digital art, watching the stars, running on the beach.",
-        reference_images=[Image.open("example_inputs/images/nanobanana_output/multiple_magical_cat/magical_cat_0.png")],
+        prompt=prompt,
+        reference_image_paths=reference_image_paths,
     )
 )
-video.save(f"{save_prefix}/single_magical_cat.mp4")
-
-
-# videos = asyncio.run(
-#     video_generator.generate_multiple_videos_from_multiple_prompts(
-#         prompts=[
-#             "A cute magical cat, digital art, watching the stars, running on the beach.",
-#             "A cute magical cat, digital art, watching the stars, running on the beach.",
-#         ],
-#         reference_images=[
-#             [Image.open("example_inputs/images/nanobanana_output/multiple_magical_cat_0/magical_cat_0.png")],
-#             [Image.open("example_inputs/images/nanobanana_output/multiple_magical_cat_1/magical_cat_1.png")],
-#         ],
-#         num_videos_per_prompt=1,
-#     )
-# )
-# for idx, video in enumerate(videos):
-#     video.save_all_videos(
-#         dir_path=f"{save_prefix}/multiple_magical_cat_{idx}",
-#         base_filename="magical_cat_running_on_beach",
-#     )
+save_path = f"{save_prefix}/ff2v.mp4" if len(reference_image_paths) == 1 else f"{save_prefix}/flf2v.mp4"
+os.makedirs(save_prefix, exist_ok=True)
+video.save(save_path)

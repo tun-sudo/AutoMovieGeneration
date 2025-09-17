@@ -4,7 +4,7 @@ import json
 from typing import Literal, List, Optional
 from utils.image import image_path_to_b64
 import time
-from tools.video.base import BaseVideoGenerator
+from tools.video_generator.base import BaseVideoGenerator
 
 class KlingVideoGenerator(BaseVideoGenerator):
     def __init__(

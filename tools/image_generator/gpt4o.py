@@ -2,11 +2,11 @@ import os
 import logging
 from typing import List
 from openai import OpenAI
-from tools.image import ImageGeneratorOutput
+from tools.image_generator.base import BaseImageGenerator, ImageGeneratorOutput
 
 # https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1&api=image
 
-class GPT4oImageGenerator:
+class GPT4oImageGenerator(BaseImageGenerator):
     def __init__(
         self,
         api_key: str,
@@ -14,20 +14,18 @@ class GPT4oImageGenerator:
         api_version: str = "v1",
         model: str = "gpt-image-1",
         background: str = "auto",
-        size: str = "auto",
     ):
         base_url = base_url.rstrip("/") + f"/{api_version}"
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
         self.background = background
-        self.size = size
 
 
-    def __call__(
+    async def generate_single_image(
         self,
         prompt: str = None,
         reference_image_paths: List[str] = [],
-        num_generated_images: int = 1,
+        size: str = "auto",
     ) -> ImageGeneratorOutput:
         """
         Args:
@@ -44,18 +42,17 @@ class GPT4oImageGenerator:
             size: Must be one of `1024x1024`, `1536x1024` (landscape), `1024x1536` (portrait), or `auto` (default value) for `gpt-image-1`
         """
 
-        logging.info(f"Calling {self.model} to generate {num_generated_images} images")
+        logging.info(f"Calling {self.model} to generate images")
 
         if len(reference_image_paths) == 0:
             response = self.client.images.generate(
                 model=self.model,
                 prompt=prompt,
-                n=num_generated_images,
+                n=1,
                 response_format="b64_json",
-                size=self.size,
+                size=size,
                 background=self.background,
             )
-            
         else:
             # For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16 images.
 
@@ -69,19 +66,19 @@ class GPT4oImageGenerator:
                 if os.path.getsize(image_path) > 50 * 1024 * 1024:
                     raise ValueError(f"Image file too large: {image_path}")
 
-
             response = self.client.images.edit(
                 model=self.model,
                 prompt=prompt,
-                image=[
-                    open(image_path, "rb") for image_path in reference_image_paths
-                ],
-                n=num_generated_images,
+                image=[open(image_path, "rb") for image_path in reference_image_paths],
+                n=1,
                 response_format="b64_json",
+                size=size,
+                background=self.background,
             )
 
         output = ImageGeneratorOutput(
-            image_type="b64",
-            images=[data.b for data in response.data],
+            fmt="b64",
+            ext="png",
+            data=response.data[0].b64_json,
         )
         return output

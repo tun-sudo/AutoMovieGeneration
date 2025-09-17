@@ -7,10 +7,11 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, Dict, List
 from PIL import Image
+from tenacity import retry
 
 from pipelines.base import BasePipeline
-from tools.image_generator.base import SingleImage, MultipleImages
-from tools.video_generator.base import SingleVideo
+from tools.image_generator.base import ImageGeneratorOutput
+from tools.video_generator.base import VideoGeneratorOutput, BaseVideoGenerator
 from components.character import CharacterInScene
 from components.shot import Shot
 
@@ -36,7 +37,6 @@ class Script2VideoPipeline(BasePipeline):
         |       |----{shot_idx}_last_frame.png
         |       |----{shot_idx}_video.mp4
     """
-
 
     async def __call__(
         self,
@@ -132,9 +132,8 @@ class Script2VideoPipeline(BasePipeline):
                 async with sem:
                     features = "(static)" + character.static_features + ", (dynamic)" + character.dynamic_features
                     prompt = prompt_template.format(features=features, style=style)
-                    image: SingleImage = await self.image_generator.generate_single_image(
+                    image: ImageGeneratorOutput = await self.image_generator.generate_single_image(
                         prompt=prompt,
-                        reference_images=[],
                         size="512x512",
                     )
                     portrait_path = os.path.join(working_dir_characters, f"{character.identifier_in_scene}.png")
@@ -266,17 +265,22 @@ class Script2VideoPipeline(BasePipeline):
                     print(f"⬜ Generating {num_candidates - len(existing_frames)} candidates for {frame_type} of shot {current_shot_idx}...")
                     start_time_generate_candidates = time.time()
                     prompt = reference["text_prompt"]
-                    reference_images = [Image.open(path) for path, _ in reference["reference_image_path_and_text_pairs"]]
+                    reference_image_paths = [path for path, _ in reference["reference_image_path_and_text_pairs"]]
                     num_images = num_candidates - len(existing_frames)
-                    multiple_images: MultipleImages = await self.image_generator.generate_multiple_images_from_one_prompt(
-                        prompt=prompt,
-                        reference_images=reference_images,
-                        num_images=num_images,
-                        size="1600x900",
-                    )
-                    for idx, image in enumerate(multiple_images.images):
-                        save_path = os.path.join(cur_frame_candidates_dir, f"{missing_indices[idx]}.png")
-                        image.save(save_path)
+
+                    tasks = []
+                    for _ in range(num_images):
+                        task = self.image_generator.generate_single_image(
+                            prompt=prompt,
+                            reference_image_paths=reference_image_paths,
+                            size="1600x900",
+                        )
+                        tasks.append(task)
+                    for idx, task in enumerate(asyncio.as_completed(tasks)):
+                        image: ImageGeneratorOutput = await task
+                        image_path = os.path.join(cur_frame_candidates_dir, f"{missing_indices[idx]}.png")
+                        image.save(image_path)
+                        print(f"✔️ Generated candidate {missing_indices[idx]} for {frame_type} of shot {current_shot_idx}, saved to {image_path}.")
 
                     end_time_generate_candidates = time.time()
                     print(f"☑️ Generated {num_images} candidates for {frame_type} of shot {current_shot_idx} (took {end_time_generate_candidates - start_time_generate_candidates:.2f} seconds).")
@@ -303,12 +307,11 @@ class Script2VideoPipeline(BasePipeline):
 
                 available_image_path_and_text_pairs.append((best_save_path, target_description))
 
-
             if shot_description.is_last:
                 break
 
         print(f"✅ Designed storyboard and generated all frames.")
-
+        self.video_generator: BaseVideoGenerator
 
         shots = existing_shots
         # Generate video for the shot
@@ -319,19 +322,19 @@ class Script2VideoPipeline(BasePipeline):
                     print(f"⏭️ Skipped generating video for shot {shot.idx}, already exists.")
                     return
 
-                reference_images = []
+                reference_image_paths = []
 
                 if hasattr(shot, "first_frame") and shot.first_frame:
                     first_frame_path = os.path.join(working_dir, f"{shot.idx}_first_frame.png")
-                    reference_images.append(Image.open(first_frame_path))
+                    reference_image_paths.append(first_frame_path)
                 if hasattr(shot, "last_frame") and shot.last_frame:
                     last_frame_path = os.path.join(working_dir, f"{shot.idx}_last_frame.png")
-                    reference_images.append(Image.open(last_frame_path))
+                    reference_image_paths.append(last_frame_path)
 
                 prompt = shot.visual_content
-                video: SingleVideo = await self.video_generator.generate_single_video(
+                video: VideoGeneratorOutput = await self.video_generator.generate_single_video(
                     prompt=prompt,
-                    reference_images=reference_images,
+                    reference_image_paths=reference_image_paths,
                 )
                 video.save(video_path)
                 print(f"☑️ Generated video for shot {shot.index} and saved to {video_path}.")

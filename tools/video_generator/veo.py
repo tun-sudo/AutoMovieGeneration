@@ -4,10 +4,10 @@ import base64
 import time
 import requests
 import os
-from utils.image import pil_to_b64
+from utils.image import pil_to_b64, image_path_to_b64
 import logging
 from typing import List, Optional
-from tools.video_generator.base import SingleVideo, BaseVideoGenerator
+from tools.video_generator.base import VideoGeneratorOutput, BaseVideoGenerator
 from PIL import Image
 import asyncio
 
@@ -27,9 +27,9 @@ class VeoVideoGenerator(BaseVideoGenerator):
     async def generate_single_video(
         self,
         prompt: str = "",
-        reference_images: List[Image.Image] = [],
+        reference_image_paths: List[Image.Image] = [],
     ):
-        if len(reference_images) == 1:
+        if len(reference_image_paths) == 1:
             model = self.ff2v_model
         else:
             model = self.flf2v_model
@@ -46,7 +46,7 @@ class VeoVideoGenerator(BaseVideoGenerator):
         payload = {
             "prompt": prompt,
             "model": model,
-            "images": [pil_to_b64(img) for img in reference_images],
+            "images": [image_path_to_b64(image_path) for image_path in reference_image_paths],
             "enhance_prompt": True,
         }
         if model == "veo3-fast-frames":
@@ -74,7 +74,7 @@ class VeoVideoGenerator(BaseVideoGenerator):
             if data["status"] == "completed":
                 logging.info(f"Video generation completed successfully")
                 video_url = data["video_url"]
-                video = SingleVideo(fmt="url", ext="mp4", data=video_url)
+                video = VideoGeneratorOutput(fmt="url", ext="mp4", data=video_url)
                 return video
             elif data["status"] == "failed":
                 logging.error(f"Video generation failed: \n{data}")
