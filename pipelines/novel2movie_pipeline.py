@@ -15,40 +15,11 @@ from components.event import Event
 from components.scene import Scene
 from components.character import CharacterInScene, CharacterInNovel, CharacterInEvent
 from pipelines.base import BasePipeline
-
+from tenacity import retry
 
 class Novel2MoviePipeline(BasePipeline):
 
-    # def __init__(
-    #     self,
-    #     working_dir: str = ".working_dir",
-    #     **kwargs,
-    # ):
-    #     self.working_dir = working_dir
-    #     for key, value in kwargs.items():
-    #         setattr(self, key, value)
-
-    # @classmethod
-    # def init_from_config(
-    #     cls,
-    #     config_path: str,
-    #     working_dir: str = ".working_dir",
-    # ):
-    #     with open(config_path, 'r') as config_file:
-    #         config = yaml.safe_load(config_file)
-
-    #     components = {}
-    #     for key, value in config.items():
-    #         class_path = value["class_path"]
-    #         init_args = value["init_args"]
-    #         module_name, class_name = class_path.rsplit('.', 1)
-    #         module = importlib.import_module(module_name)
-    #         components[key] = getattr(module, class_name)(**init_args)
-
-    #     return cls(**components, working_dir=working_dir)
-
-
-
+    @retry
     async def __call__(
         self,
         novel_text: str,
