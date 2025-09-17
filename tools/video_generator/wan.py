@@ -126,14 +126,15 @@ class WanVideoGenerator(BaseVideoGenerator):
             if data["data"] is not None:
                 break
             else:
-                logging.error(f"Video generation request failed: \n{data["msg"]}, waiting 1 second to retry...")
+                msg = data["msg"]
+                logging.error(f"Video generation request failed: {msg}, waiting 1 second to retry...")
                 await asyncio.sleep(1)
                 continue
 
         # print(data.decode("utf-8"))
         while True:
             # query status
-            taskId = json.loads(data.decode("utf-8"))["data"]["taskId"]
+            taskId = data["data"]["taskId"]
             conn = http.client.HTTPSConnection("www.runninghub.cn")
             payload = json.dumps({
                 "apiKey": self.api_key,
@@ -160,5 +161,5 @@ class WanVideoGenerator(BaseVideoGenerator):
                 break
             else:
                 logging.info(f"Video generation status: {query_data['data']}, waiting 1 second...")
-                await asyncio.sleep(1)
+                await asyncio.sleep(5)
                 continue
