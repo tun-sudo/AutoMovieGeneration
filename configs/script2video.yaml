@@ -53,9 +53,9 @@ video_generator:
     flf2v_model: veo2-fast-frames  # first and last frame to video
 
 
-video_generator:
-  class_path: tools.video_generator.wan.WanVideoGenerator
-  init_args:
-    api_key: 9caa641d699a4223b95b7bccebf597c4
-    ff2v_model: 
-    flf2v_model: veo2-fast-frames  # first and last frame to video
+# video_generator:
+#   class_path: tools.video_generator.wan.WanVideoGenerator
+#   init_args:
+#     api_key: 9caa641d699a4223b95b7bccebf597c4
+#     ff2v_model: wan2_2-ff2v
+#     flf2v_model: wan2_2-flf2v

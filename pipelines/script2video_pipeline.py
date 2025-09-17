@@ -186,6 +186,10 @@ class Script2VideoPipeline(BasePipeline):
         characters_identifiers = list(character_registry.keys())
 
 
+        video_futures = []
+        executor = ThreadPoolExecutor(max_workers=1)
+
+
         available_image_path_and_text_pairs = []
         for character_identifier, portraits in character_registry.items():
             for portrait in portraits:
@@ -276,11 +280,17 @@ class Script2VideoPipeline(BasePipeline):
                             size="1600x900",
                         )
                         tasks.append(task)
-                    for idx, task in enumerate(asyncio.as_completed(tasks)):
-                        image: ImageGeneratorOutput = await task
+                    images: List[ImageGeneratorOutput] = await asyncio.gather(*tasks)
+                    for idx, image in enumerate(images):
                         image_path = os.path.join(cur_frame_candidates_dir, f"{missing_indices[idx]}.png")
                         image.save(image_path)
                         print(f"✔️ Generated candidate {missing_indices[idx]} for {frame_type} of shot {current_shot_idx}, saved to {image_path}.")
+
+                    # for idx, task in enumerate(asyncio.as_completed(tasks)):
+                    #     image: ImageGeneratorOutput = await task
+                    #     image_path = os.path.join(cur_frame_candidates_dir, f"{missing_indices[idx]}.png")
+                    #     image.save(image_path)
+                    #     print(f"✔️ Generated candidate {missing_indices[idx]} for {frame_type} of shot {current_shot_idx}, saved to {image_path}.")
 
                     end_time_generate_candidates = time.time()
                     print(f"☑️ Generated {num_images} candidates for {frame_type} of shot {current_shot_idx} (took {end_time_generate_candidates - start_time_generate_candidates:.2f} seconds).")
@@ -307,44 +317,125 @@ class Script2VideoPipeline(BasePipeline):
 
                 available_image_path_and_text_pairs.append((best_save_path, target_description))
 
+
+            #  Submit background video generation immediately after frames are ready
+
+            video_path = os.path.join(working_dir, f"{shot_description.idx}_video.mp4")
+            if os.path.exists(video_path):
+                print(f"⏭️ Skipped generating video for shot {shot_description.idx}, already exists.")
+            else:
+                print(f" 🚀 Submitting background video generation for shot {shot_description.idx}...")
+                frame_paths = []
+                if hasattr(shot_description, "first_frame") and shot_description.first_frame:
+                    first_frame_path = os.path.join(working_dir, f"{shot_description.idx}_first_frame.png")
+                    frame_paths.append(first_frame_path)
+
+                if hasattr(shot_description, "last_frame") and shot_description.last_frame:
+                    last_frame_path = os.path.join(working_dir, f"{shot_description.idx}_last_frame.png")
+                    frame_paths.append(last_frame_path)
+                future = executor.submit(
+                    self._run_video_with_retries,
+                    shot_description.visual_content,
+                    frame_paths,
+                    video_path,
+                    3, # max_attempts=3,
+                    5, # delay seconds
+                )
+                ensure_start_deadline = time.time() + 1.0
+                while not future.running() and time.time() < ensure_start_deadline:
+                    time.sleep(0.05)
+                if future.running():
+                    print(f"   ▶️ Video task is running for shot {shot_description.idx}")
+                video_futures.append((shot_description.idx, future))
+
             if shot_description.is_last:
                 break
 
-        print(f"✅ Designed storyboard and generated all frames.")
-        self.video_generator: BaseVideoGenerator
 
-        shots = existing_shots
-        # Generate video for the shot
-        async def generate_video_for_single_shot(sem, shot: Shot):
-            async with sem:
-                video_path = os.path.join(working_dir, f"{shot.idx}_video.mp4")
-                if os.path.exists(video_path):
-                    print(f"⏭️ Skipped generating video for shot {shot.idx}, already exists.")
-                    return
+        if video_futures:
+            print(f"⏳ Waiting for {len(video_futures)} background video task(s) to complete...")
+            wait_start = time.time()
+            for shot_idx, future in video_futures:
+                try:
+                    future.result()
+                    print(f"   ✅ Video task completed for shot {shot_idx}")
+                except Exception as e:
+                    logging.error(f"Video generation task failed for shot {shot_idx}: {e}")
+                    print(f"   ❌ Video task failed for shot {shot_idx}: {str(e)}")
+            wait_duration = time.time() - wait_start
+            print(f"✅ All background video tasks completed in {wait_duration:.2f}s")
+        else:
+            print("📁 All videos already exist, skipping generation")
+        executor.shutdown(wait=True)
 
-                reference_image_paths = []
+    def _run_video_with_retries(
+        self,
+        prompt: str,
+        frame_paths: list,
+        save_path: str,
+        max_attempts: int = 3,
+        delay_seconds: float = 5.0,
+    ) -> str:
+        """Run video generation with retries. Returns save_path on success, raises on final failure."""
+        last_error = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                logging.info(f"[VideoRetry] Attempt {attempt}/{max_attempts} for {save_path}")
+                video = asyncio.run(self.video_generator.generate_single_video(prompt, frame_paths))
+                video.save(save_path)
+                if os.path.exists(save_path):
+                    logging.info(f"[VideoRetry] Success on attempt {attempt} for {save_path}")
+                    return save_path
+                else:
+                    logging.warning(f"[VideoRetry] No output file after attempt {attempt} for {save_path}")
+            except Exception as e:
+                last_error = e
+                logging.error(f"[VideoRetry] Exception on attempt {attempt} for {save_path}: {e}")
+            if attempt < max_attempts:
+                time.sleep(delay_seconds)
+        # If we get here, all attempts failed
+        error_message = f"Video generation failed after {max_attempts} attempts for {save_path}"
+        if last_error:
+            raise RuntimeError(error_message) from last_error
+        raise RuntimeError(error_message)
+    
 
-                if hasattr(shot, "first_frame") and shot.first_frame:
-                    first_frame_path = os.path.join(working_dir, f"{shot.idx}_first_frame.png")
-                    reference_image_paths.append(first_frame_path)
-                if hasattr(shot, "last_frame") and shot.last_frame:
-                    last_frame_path = os.path.join(working_dir, f"{shot.idx}_last_frame.png")
-                    reference_image_paths.append(last_frame_path)
 
-                prompt = shot.visual_content
-                video: VideoGeneratorOutput = await self.video_generator.generate_single_video(
-                    prompt=prompt,
-                    reference_image_paths=reference_image_paths,
-                )
-                video.save(video_path)
-                print(f"☑️ Generated video for shot {shot.index} and saved to {video_path}.")
+        # print(f"✅ Designed storyboard and generated all frames.")
+        # self.video_generator: BaseVideoGenerator
+
+        # shots = existing_shots
+        # # Generate video for the shot
+        # async def generate_video_for_single_shot(sem, shot: Shot):
+        #     async with sem:
+        #         video_path = os.path.join(working_dir, f"{shot.idx}_video.mp4")
+        #         if os.path.exists(video_path):
+        #             print(f"⏭️ Skipped generating video for shot {shot.idx}, already exists.")
+        #             return
+
+        #         reference_image_paths = []
+
+        #         if hasattr(shot, "first_frame") and shot.first_frame:
+        #             first_frame_path = os.path.join(working_dir, f"{shot.idx}_first_frame.png")
+        #             reference_image_paths.append(first_frame_path)
+        #         if hasattr(shot, "last_frame") and shot.last_frame:
+        #             last_frame_path = os.path.join(working_dir, f"{shot.idx}_last_frame.png")
+        #             reference_image_paths.append(last_frame_path)
+
+        #         prompt = shot.visual_content
+        #         video: VideoGeneratorOutput = await self.video_generator.generate_single_video(
+        #             prompt=prompt,
+        #             reference_image_paths=reference_image_paths,
+        #         )
+        #         video.save(video_path)
+        #         print(f"☑️ Generated video for shot {shot.index} and saved to {video_path}.")
 
 
-        # Generate video for the shot
-        sem = asyncio.Semaphore(3)
-        tasks = []
-        for shot in shots:
-            tasks.append(generate_video_for_single_shot(sem, shot))
+        # # Generate video for the shot
+        # sem = asyncio.Semaphore(3)
+        # tasks = []
+        # for shot in shots:
+        #     tasks.append(generate_video_for_single_shot(sem, shot))
 
-        await asyncio.gather(*tasks)
-        print(f"✅ Finished generating videos for all shots.")
+        # await asyncio.gather(*tasks)
+        # print(f"✅ Finished generating videos for all shots.")

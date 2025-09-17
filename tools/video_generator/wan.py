@@ -117,9 +117,19 @@ class WanVideoGenerator(BaseVideoGenerator):
             'Host': 'www.runninghub.cn',
             'Content-Type': 'application/json'
         }
-        conn.request("POST", "/task/openapi/create", payload, headers)
-        res = conn.getresponse()
-        data = res.read()
+
+        while True:
+            conn.request("POST", "/task/openapi/create", payload, headers)
+            res = conn.getresponse()
+            data = res.read()
+            data = json.loads(data.decode("utf-8"))
+            if data["data"] is not None:
+                break
+            else:
+                logging.error(f"Video generation request failed: \n{data["msg"]}, waiting 1 second to retry...")
+                await asyncio.sleep(1)
+                continue
+
         # print(data.decode("utf-8"))
         while True:
             # query status

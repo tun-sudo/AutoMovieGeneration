@@ -24,11 +24,11 @@ video_generator = WanVideoGenerator(
 )
 
 prompt = "A cute magical cat, digital art, watching the stars, running on the beach."
-# reference_image_paths = ["example_inputs/images/nanobanana_output/one_cat.png"]
-reference_image_paths = [
-    "example_inputs/images/nanobanana_output/one_cat.png",
-    "example_inputs/images/nanobanana_output/one_cat.png"
-]
+reference_image_paths = ["example_inputs/images/nanobanana_output/one_cat.png"]
+# reference_image_paths = [
+#     "example_inputs/images/nanobanana_output/one_cat.png",
+#     "example_inputs/images/nanobanana_output/one_cat.png"
+# ]
 
 video = asyncio.run(
     video_generator.generate_single_video(
