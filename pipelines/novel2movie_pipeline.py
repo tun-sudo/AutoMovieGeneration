@@ -521,7 +521,12 @@ class Novel2MoviePipeline(BasePipeline):
                 for character in scene.characters:
                     character_registry[character.identifier_in_scene] = [
                         {
-                            "path": os.path.join(base_character_portrait_dir, f"character_{character.index}_{character.identifier_in_scene}.png"),
+                            "path": os.path.join(
+                                working_dir_character_portrait,
+                                f"event_{event.index}",
+                                f"scene_{scene.idx}",
+                                f"character_{character.index}_{character.identifier_in_scene}.png",
+                            ),
                             "description": f"A portrait of {character.identifier_in_scene}",
                         }
                     ]
