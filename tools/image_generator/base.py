@@ -60,7 +60,19 @@ class BaseImageGenerator:
         self,
         prompt: str,
         reference_image_paths: List[str] = [],
+        size: Optional[str] = None,
     ) -> ImageGeneratorOutput:
+        """
+        prompt: str
+            The text prompt to generate the image.
+
+        reference_image_paths: List[str]
+            List of paths to reference images. If provided, the model will use these images as references for generation. If empty, the model will generate an image based solely on the text prompt.
+
+        size: Optional[str]
+            The desired size of the generated image. For example, 1280x720 (width x height).
+        
+        """
         pass
 
     async def generate_multiple_images_from_one_prompt(
