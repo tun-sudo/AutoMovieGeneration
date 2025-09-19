@@ -1,7 +1,4 @@
-import base64
-import os
 import asyncio
-from abc import abstractmethod
 from typing import List, Literal, Optional, Union
 from PIL import Image
 
@@ -44,7 +41,20 @@ class BaseVideoGenerator:
         prompt: str,
         reference_image_paths: List[str],
     ) -> VideoGeneratorOutput:
-        pass
+        """
+        prompt: str
+            The text prompt to guide video generation.
+        reference_image_paths: List[str]
+            List of file paths to reference images that guide the video generation.
+            If length is 1, use first frame to video (ff2v) model to generate video.
+            If length is 2, use first and last frame to video (flf2v) model to generate video.
+
+        Returns:
+            VideoGeneratorOutput: The generated video output, including format, extension, and data.
+        """
+
+        raise NotImplementedError
+
 
     async def generate_multiple_videos_from_one_prompt(
         self,
