@@ -12,7 +12,6 @@ def download_video(url, save_path):
         response.raise_for_status()  # 检查请求是否成功
     
         with open(save_path, 'wb') as f:
-            downloaded = 0
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
 

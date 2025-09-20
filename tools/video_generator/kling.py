@@ -6,6 +6,8 @@ from utils.image import image_path_to_b64
 import time
 from tools.video_generator.base import BaseVideoGenerator
 
+
+
 class KlingVideoGenerator(BaseVideoGenerator):
     def __init__(
         self,
