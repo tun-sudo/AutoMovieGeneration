@@ -1,5 +1,6 @@
 import base64
 import os
+import logging
 import asyncio
 from abc import abstractmethod
 from typing import List, Literal, Optional, Union
@@ -32,6 +33,7 @@ class ImageGeneratorOutput:
         """
         with open(path, 'wb') as f:
             f.write(base64.b64decode(self.data))
+        logging.info(f"Image saved to {path}.") 
 
     def save_url(self, path: str) -> None:
         """Download and save an image from a URL to the specified path.
@@ -48,6 +50,7 @@ class ImageGeneratorOutput:
             path (str): Path where the image will be saved.
         """
         self.data.save(path)
+        logging.info(f"Image saved to {path}.")
 
     def save(self, path: str) -> None:
         save_func = getattr(self, f"save_{self.fmt}")

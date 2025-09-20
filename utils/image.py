@@ -17,6 +17,7 @@ def download_image(url, save_path):
         with open(save_path, 'wb') as file:
             for chunk in response.iter_content(chunk_size=1024):
                 file.write(chunk)
+        logging.info(f"Image downloaded successfully to {save_path}")
 
     except Exception as e:
         logging.error(f"Error downloading image: {e}")

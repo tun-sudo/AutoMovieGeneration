@@ -44,24 +44,24 @@ reference_image_paths = [
 #     model="gemini-2.5-flash-image-preview",
 # )
 
-# save_prefix = "example_inputs/images/nanobanana_output"
-# image_generator = NanoBananaImageGenerator(
-#     api_key=api_key,
-#     base_url=base_url,
-#     model="nano-banana",
-# )
-
-save_prefix = "example_inputs/images/doubao_seedream_output"
-image_generator = DoubaoSeedreamImageGenerator(
+save_prefix = "example_inputs/images/nanobanana_output"
+image_generator = NanoBananaImageGenerator(
     api_key=api_key,
-    model="doubao-seedream-4-0-250828",
+    base_url=base_url,
+    model="nano-banana",
 )
+
+# save_prefix = "example_inputs/images/doubao_seedream_output"
+# image_generator = DoubaoSeedreamImageGenerator(
+#     api_key=api_key,
+#     model="doubao-seedream-4-0-250828",
+# )
 
 image = asyncio.run(
     image_generator.generate_single_image(
         prompt=prompt,
         reference_image_paths=reference_image_paths,
-        size="1536x1024",
+        size="1600x1024",
     )
 )
 os.makedirs(save_prefix, exist_ok=True)
