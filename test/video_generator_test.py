@@ -36,6 +36,12 @@ reference_image_paths = [
     r"example_inputs\images\nanobanana_output\tree.png"
 ]
 
+
+reference_image_paths = [
+    r"example_inputs\images\nanobanana_output\seed.png",
+    r"example_inputs\images\nanobanana_output\tree.png"
+]
+
 video = asyncio.run(
     video_generator.generate_single_video(
         prompt=prompt,
