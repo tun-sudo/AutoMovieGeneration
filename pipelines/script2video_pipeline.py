@@ -245,6 +245,7 @@ class Script2VideoPipeline(BasePipeline):
                         reference = json.load(f)
                     print(f"⏭️ Skipped selecting reference image for {frame_type} of shot {current_shot_idx}, loaded from existing file.")
                 else:
+                    print(f"🔍 Selecting reference image for {frame_type} of shot {current_shot_idx}...")
                     start_time_select_reference = time.time()
                     reference = self.reference_image_selector(
                         frame_description=getattr(shot_description, frame_type),
@@ -259,7 +260,7 @@ class Script2VideoPipeline(BasePipeline):
                 # 2.2 generate frame candidates
                 num_candidates = 3
                 cur_frame_candidates_dir = os.path.join(frame_candidates_dir, f"shot_{current_shot_idx}_{frame_type}")
-                print(f"   🎨 Generating {frame_type} candidates for shot {current_shot_idx}...")
+                print(f"🎨 Generating {frame_type} candidates for shot {current_shot_idx}...")
                 os.makedirs(cur_frame_candidates_dir, exist_ok=True)
                 existing_frames = os.listdir(cur_frame_candidates_dir)
                 missing_indices = [i for i in range(num_candidates) if f"{i}.png" not in existing_frames]
@@ -324,7 +325,7 @@ class Script2VideoPipeline(BasePipeline):
             if os.path.exists(video_path):
                 print(f"⏭️ Skipped generating video for shot {shot_description.idx}, already exists.")
             else:
-                print(f" 🚀 Submitting background video generation for shot {shot_description.idx}...")
+                print(f"    🚀 Submitting background video generation for shot {shot_description.idx}...")
                 frame_paths = []
                 if hasattr(shot_description, "first_frame") and shot_description.first_frame:
                     first_frame_path = os.path.join(working_dir, f"{shot_description.idx}_first_frame.png")
